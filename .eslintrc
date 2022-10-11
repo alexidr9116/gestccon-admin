@@ -8,12 +8,14 @@
     "airbnb",
     "plugin:jsx-a11y/recommended",
     "plugin:react-hooks/recommended",
-    "prettier"
+    "prettier",
+    "plugin:import/recommended"
   ],
   "plugins": [
     "react",
     "react-hooks",
-    "prettier"
+    "prettier",
+    "import"
   ],
   "parser": "@babel/eslint-parser",
   "parserOptions": {
@@ -30,6 +32,7 @@
     "no-console": 0,
     "react/jsx-key": 1,
     "import/no-cycle": 0,
+    "import/extensions": 0,
     "arrow-body-style": 1,
     "react/prop-types": 1,
     "consistent-return": 1,

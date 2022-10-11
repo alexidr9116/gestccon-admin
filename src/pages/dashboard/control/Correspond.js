@@ -9,14 +9,14 @@ import useSettings from '../../../hooks/useSettings';
 import Page from '../../../components/Page';
 import HeaderBreadcrumbs from '../../../components/HeaderBreadcrumbs';
 import Register from '../../../sections/control/Correspond/Register';
-import Observation from '../../../sections/control/Correspond/Category';
+import Observation from '../../../sections/control/Correspond/Observation';
 import Search from '../../../sections/control/Correspond/Search';
 // sections
 
 
 // ----------------------------------------------------------------------
 
-export default function Condo() {
+export default function Correspond() {
     const { themeStretch } = useSettings();
     const [selectedTab, setSelectedTab] = useState(0);
     const handleChange = (evt, value) => {

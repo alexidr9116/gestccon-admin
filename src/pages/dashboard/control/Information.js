@@ -8,10 +8,10 @@ import useSettings from '../../../hooks/useSettings';
 // components
 import Page from '../../../components/Page';
 import HeaderBreadcrumbs from '../../../components/HeaderBreadcrumbs';
-import Register from '../../../sections/control/Warehouse/Prohibited';
-import Search from '../../../sections/control/Warehouse/Search';
-import Setting from '../../../sections/control/Warehouse/Exit';
-import Type from '../../../sections/control/Warehouse/Inventory';
+import Register from '../../../sections/control/Information/Register';
+import Search from '../../../sections/control/Information/Search';
+import Setting from '../../../sections/control/Information/Setting';
+import Type from '../../../sections/control/Information/Type';
 // sections
 
 
@@ -40,8 +40,8 @@ export default function Information() {
                     scrollButtons="auto"   sx={{ px: 2, bgcolor: 'background.neutral' }}>
                     <Tab label="Register" mx={1} value={0} />
                     <Tab label="To search for" mx={1} value={1} />
-                    <Tab label="Settign" mx={1} value={2} />
-                    <Tab label="Input" mx={1} value={3} />
+                    <Tab label="Setting" mx={1} value={2} />
+                    <Tab label="Type" mx={1} value={3} />
                 </Tabs>
 
                 <Box padding={2}>

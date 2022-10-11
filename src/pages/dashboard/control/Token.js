@@ -24,13 +24,13 @@ export default function Token() {
         setSelectedTab(value)
     }
     return (
-        <Page title="Controls | Pet Space">
+        <Page title="Controls | Token">
             <Container maxWidth={themeStretch ? false : 'lg'}>
                 <HeaderBreadcrumbs
-                    heading="Pet Space"
+                    heading="Token"
                     links={[
                         { name: 'Control' },
-                        { name: 'Pet Space' },
+                        { name: 'Token' },
 
                     ]}
                 />

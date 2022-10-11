@@ -8,9 +8,9 @@ import useSettings from '../../../hooks/useSettings';
 // components
 import Page from '../../../components/Page';
 import HeaderBreadcrumbs from '../../../components/HeaderBreadcrumbs';
-import Register from '../../../sections/control/Medical/Register';
-import Search from '../../../sections/control/Medical/Search';
-import Status from '../../../sections/control/Medical/Type';
+import Register from '../../../sections/control/Polls/Register';
+import Search from '../../../sections/control/Polls/Search';
+import Status from '../../../sections/control/Polls/Status';
 // sections
 
 

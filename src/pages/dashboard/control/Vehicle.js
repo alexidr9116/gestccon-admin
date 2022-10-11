@@ -8,17 +8,15 @@ import useSettings from '../../../hooks/useSettings';
 // components
 import Page from '../../../components/Page';
 import HeaderBreadcrumbs from '../../../components/HeaderBreadcrumbs';
-import Prohibited from '../../../sections/control/Warehouse/Prohibited';
-import Search from '../../../sections/control/Warehouse/Search';
-import Exit from '../../../sections/control/Warehouse/Exit';
-import Inventory from '../../../sections/control/Warehouse/Inventory';
-import Product from '../../../sections/control/Warehouse/Product';
+import Register from '../../../sections/control/Vehicles/Register';
+import Search from '../../../sections/control/Vehicles/Search';
+import Setting from '../../../sections/control/Vehicles/Setting';
 // sections
 
 
 // ----------------------------------------------------------------------
 
-export default function Warehouse() {
+export default function Vehicle() {
     const { themeStretch } = useSettings();
     const [selectedTab, setSelectedTab] = useState(0);
     const handleChange = (evt, value) => {
@@ -26,41 +24,33 @@ export default function Warehouse() {
         setSelectedTab(value)
     }
     return (
-        <Page title="Controls | Warehouse">
+        <Page title="Controls | Vehicle">
             <Container maxWidth={themeStretch ? false : 'lg'}>
                 <HeaderBreadcrumbs
-                    heading="Warehouse"
+                    heading="Vehicle"
                     links={[
                         { name: 'Control' },
-                        { name: 'Warehouse' },
+                        { name: 'Vehicle' },
 
                     ]}
                 />
                 <Tabs onChange={handleChange} value={selectedTab} allowScrollButtonsMobile
                     variant="scrollable"
                     scrollButtons="auto"   sx={{ px: 2, bgcolor: 'background.neutral' }}>
-                    <Tab label="Prohibited" mx={1} value={0} />
-                    <Tab label="Exit" mx={1} value={1} />
-                    <Tab label="Inventory" mx={1} value={2} />
-                    <Tab label="Product" mx={1} value={3} />
-                    <Tab label="To search for" mx={1} value={4} />
+                    <Tab label="Register" mx={1} value={0} />
+                    <Tab label="Search" mx={1} value={1} />
+                    <Tab label="Setting" mx={1} value={2} />
                 </Tabs>
 
                 <Box padding={2}>
                     {selectedTab === 0 &&
-                        <Prohibited />
+                        <Register />
                     }
                     {selectedTab === 1 &&
-                         <Exit />
+                         <Search />
                     }
                     {selectedTab === 2 &&
-                         <Inventory />
-                    }
-                    {selectedTab === 3 &&
-                         <Product />
-                    }
-                    {selectedTab === 4 &&
-                         <Search />
+                         <Setting />
                     }
                 </Box>
             </Container>
