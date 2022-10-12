@@ -75,12 +75,21 @@ export default function Router() {
           path: 'master-panel',
           children: [
             { element: <Navigate to="/dashboard/e-commerce/shop" replace />, index: true },
-            { path: 'block', element: <BlockIPSetting /> },
+            { path: 'access-configuration', element: <AccessConfiguration /> },
             { path: 'product/:name', element: <EcommerceProductDetails /> },
             { path: 'list', element: <EcommerceProductList /> },
             { path: 'product/new', element: <EcommerceProductCreate /> },
             { path: 'product/:name/edit', element: <EcommerceProductEdit /> },
             { path: 'checkout', element: <EcommerceCheckout /> },
+          ],
+        },
+        {
+          path: 'registeration',
+          children: [
+            { element: <Navigate to="/dashboard/e-commerce/shop" replace />, index: true },
+            { path: 'environment', element: <Environment /> },
+            { path: 'condominium', element: <Condominium /> },
+            { path: 'user', element: <User /> },
           ],
         },
         {
@@ -198,7 +207,10 @@ const NewPassword = Loadable(lazy(() => import('../pages/auth/NewPassword')));
 const VerifyCode = Loadable(lazy(() => import('../pages/auth/VerifyCode')));
 
 // DASHBOARD
-
+//REGISTERATION
+const Environment = Loadable(lazy(() => import('../pages/dashboard/registeration/Environment')));
+const Condominium = Loadable(lazy(() => import('../pages/dashboard/registeration/Condominium')));
+const User = Loadable(lazy(() => import('../pages/dashboard/registeration/User')));
 // GENERAL
 const GeneralApp = Loadable(lazy(() => import('../pages/dashboard/GeneralApp')));
 const GeneralEcommerce = Loadable(lazy(() => import('../pages/dashboard/GeneralEcommerce')));
@@ -208,6 +220,7 @@ const GeneralBooking = Loadable(lazy(() => import('../pages/dashboard/GeneralBoo
 
 // Master
 const BlockIPSetting = Loadable(lazy(() => import('../pages/dashboard/master/Block')));
+const AccessConfiguration = Loadable(lazy(() => import('../pages/dashboard/master/AccessConfiguration')));
 const EcommerceProductDetails = Loadable(lazy(() => import('../pages/dashboard/EcommerceProductDetails')));
 const EcommerceProductList = Loadable(lazy(() => import('../pages/dashboard/EcommerceProductList')));
 const EcommerceProductCreate = Loadable(lazy(() => import('../pages/dashboard/EcommerceProductCreate')));

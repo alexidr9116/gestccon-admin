@@ -9,13 +9,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-
-import InputAdornment from '@mui/material/InputAdornment';
 import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box } from '@mui/material';
 // routes
 
 // components
-import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
+import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile } from '../../../components/hook-form';
 
 // ----------------------------------------------------------------------
 
@@ -27,7 +25,7 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Register() {
+export default function AccessProfile() {
     const navigate = useNavigate();
 
     const [open, setOpen] = useState(false);
@@ -43,21 +41,11 @@ export default function Register() {
     };
 
     const RegisterForm = Yup.object().shape({
-        title: Yup.string().required('IP Address is required'),
-        file: Yup.string().required('IP Address is required'),
-        category: Yup.string().required('IP Address is required'),
-        provider: Yup.string().required('IP Address is required'),
-        value: Yup.string().required('IP Address is required'),
-        text: Yup.string().required('IP Address is required'),
+        profile: Yup.string().required('IP Address is required'),
     });
 
     const defaultValues = {
-        title: '',
-        file: '',
-        category: '',
-        provider: '',
-        value: '',
-        text: '',
+        profile: '',
     };
 
     const methods = useForm({
@@ -91,37 +79,34 @@ export default function Register() {
     return (
         <>
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-                <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Register a Classfied</Typography>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFTextField name="title" label="Title" />
-                        <RHFTextField name="file" label="File" />
+                <Stack spacing={3}  paddingTop = {1}>
+                    <Typography variant='subtitle1'>Change Permissions</Typography>
+                    <Stack sx={{flexDirection:{md:'row', xs:'column'}}} gap={2}>
+                        <RHFTextField name="profile" label="Profile" />
                     </Stack>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFSelect name="category" label="Category">
-                            {["CATEGORY_OPTION"].map((category, index) => (
-                                <option key={index} value={category}>
-                                    {category}
-                                </option>
-
-                            ))}
-                        </RHFSelect>
-                        <RHFSelect name="provider" label="Provider">
-                            {["CATEGORY_OPTION"].map((category, index) => (
-                                <option key={index} value={category}>
-                                    {category}
-                                </option>
-
-                            ))}
-                        </RHFSelect>
-                        
-                        <RHFTextField name="value" label="Value"
-                            InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
-
-                    </Stack>
+                    <Box display="flex" >
+                        <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>
+                            Registeration
+                        </Button>
+                        <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>
+                            Controls
+                        </Button>
+                        <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>
+                            Financial
+                        </Button>
+                        <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>
+                            Master Panel
+                        </Button>
+                        <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>
+                            General Report
+                        </Button>
+                        <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>
+                            Portal Website
+                        </Button>
+                    </Box>
                     <Box>
                         <Button variant="contained" size="large" onClick={handleOpenPreview}>
-                            Register
+                            To Save
                         </Button>
                     </Box>
                 </Stack>

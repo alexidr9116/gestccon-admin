@@ -9,9 +9,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-
-import InputAdornment from '@mui/material/InputAdornment';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, InputAdornment } from '@mui/material';
 // routes
 
 // components
@@ -27,7 +25,7 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-export default function Register() {
+export default function Edit() {
     const navigate = useNavigate();
 
     const [open, setOpen] = useState(false);
@@ -43,21 +41,34 @@ export default function Register() {
     };
 
     const RegisterForm = Yup.object().shape({
-        title: Yup.string().required('IP Address is required'),
-        file: Yup.string().required('IP Address is required'),
-        category: Yup.string().required('IP Address is required'),
-        provider: Yup.string().required('IP Address is required'),
-        value: Yup.string().required('IP Address is required'),
-        text: Yup.string().required('IP Address is required'),
+        name: Yup.string().required('IP Address is required'),
+        image: Yup.string().required('IP Address is required'),
+        site: Yup.string().required('IP Address is required'),
+        email: Yup.string().required('IP Address is required'),
+        telphone: Yup.string().required('IP Address is required'),
+        zipcode: Yup.string().required('IP Address is required'),
+        place: Yup.string().required('IP Address is required'),
+        number: Yup.string().required('IP Address is required'),
+        neighborhood: Yup.string().required('IP Address is required'),
+        type: Yup.string().required('IP Address is required'),
+        city: Yup.string().required('IP Address is required'),
+        state: Yup.string().required('IP Address is required'),
+        email: Yup.string().required('IP Address is required'),
     });
 
     const defaultValues = {
-        title: '',
-        file: '',
-        category: '',
-        provider: '',
-        value: '',
-        text: '',
+        name: '',
+        image: '',
+        site: true,
+        email: '',
+        telephone: '',
+        zipcode: '',
+        number: '',
+        neighborhood: '',
+        type: '',
+        city: '',
+        state: '',
+        email: '',
     };
 
     const methods = useForm({
@@ -92,13 +103,19 @@ export default function Register() {
         <>
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Register a Classfied</Typography>
+                    <Typography variant='subtitle1'>Condominium Information</Typography>
                     <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFTextField name="title" label="Title" />
-                        <RHFTextField name="file" label="File" />
+                        <RHFTextField name="name" label="Condominium Name" />
+                        <RHFTextField name="image" label="Image" />
+                        <RHFTextField name="site" label="Site"
+                            InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
                     </Stack>
+                </Stack>
+                <Stack spacing={3} paddingTop={1}>
+                    <Typography variant='subtitle1'>Condo Address</Typography>
                     <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFSelect name="category" label="Category">
+                    <RHFTextField name="neighborhood" label="Neighborhood" />
+                        <RHFSelect name="type" label="Type of Street">
                             {["CATEGORY_OPTION"].map((category, index) => (
                                 <option key={index} value={category}>
                                     {category}
@@ -106,18 +123,13 @@ export default function Register() {
 
                             ))}
                         </RHFSelect>
-                        <RHFSelect name="provider" label="Provider">
-                            {["CATEGORY_OPTION"].map((category, index) => (
-                                <option key={index} value={category}>
-                                    {category}
-                                </option>
-
-                            ))}
-                        </RHFSelect>
-                        
-                        <RHFTextField name="value" label="Value"
-                            InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
-
+                    </Stack>
+                </Stack>
+                <Stack spacing={3} paddingTop={1}>
+                    <Typography variant='subtitle1'>Condo Settings and Permisions </Typography>
+                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
+                        <RHFTextField name="city" label="City" />
+                        <RHFTextField name="state" label="State " />
                     </Stack>
                     <Box>
                         <Button variant="contained" size="large" onClick={handleOpenPreview}>

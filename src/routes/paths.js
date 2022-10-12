@@ -65,9 +65,16 @@ export const PATH_DASHBOARD = {
     edit: (name) => path(ROOTS_DASHBOARD, `/user/${name}/edit`),
     demoEdit: path(ROOTS_DASHBOARD, `/user/reece-chung/edit`),
   },
+  registeration: {
+    root: path(ROOTS_DASHBOARD, '/registeration'),
+    environment: path(ROOTS_DASHBOARD, '/registeration/environment'),
+    condominium: path(ROOTS_DASHBOARD, '/registeration/condominium'),
+    
+  },
   master: {
     root: path(ROOTS_DASHBOARD, '/master-panel'),
     block: path(ROOTS_DASHBOARD, '/master-panel/block'),
+    access: path(ROOTS_DASHBOARD, '/master-panel/access-configuration'),
     list: path(ROOTS_DASHBOARD, '/user/list'),
     cards: path(ROOTS_DASHBOARD, '/user/cards'),
     profile: path(ROOTS_DASHBOARD, '/user/profile'),

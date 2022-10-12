@@ -9,13 +9,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-
-import InputAdornment from '@mui/material/InputAdornment';
 import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box } from '@mui/material';
 // routes
 
 // components
-import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
+import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile } from '../../../components/hook-form';
 
 // ----------------------------------------------------------------------
 
@@ -43,21 +41,11 @@ export default function Register() {
     };
 
     const RegisterForm = Yup.object().shape({
-        title: Yup.string().required('IP Address is required'),
-        file: Yup.string().required('IP Address is required'),
-        category: Yup.string().required('IP Address is required'),
-        provider: Yup.string().required('IP Address is required'),
-        value: Yup.string().required('IP Address is required'),
-        text: Yup.string().required('IP Address is required'),
+        name: Yup.string().required('IP Address is required'),
     });
 
     const defaultValues = {
-        title: '',
-        file: '',
-        category: '',
-        provider: '',
-        value: '',
-        text: '',
+        name: '',
     };
 
     const methods = useForm({
@@ -91,33 +79,10 @@ export default function Register() {
     return (
         <>
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-                <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Register a Classfied</Typography>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFTextField name="title" label="Title" />
-                        <RHFTextField name="file" label="File" />
-                    </Stack>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFSelect name="category" label="Category">
-                            {["CATEGORY_OPTION"].map((category, index) => (
-                                <option key={index} value={category}>
-                                    {category}
-                                </option>
-
-                            ))}
-                        </RHFSelect>
-                        <RHFSelect name="provider" label="Provider">
-                            {["CATEGORY_OPTION"].map((category, index) => (
-                                <option key={index} value={category}>
-                                    {category}
-                                </option>
-
-                            ))}
-                        </RHFSelect>
-                        
-                        <RHFTextField name="value" label="Value"
-                            InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
-
+                <Stack spacing={3}  paddingTop = {1}>
+                    <Typography variant='subtitle1'>Registeration Information</Typography>
+                    <Stack sx={{flexDirection:{md:'row', xs:'column'}}} gap={2}>
+                        <RHFTextField name="name" label="Name" />
                     </Stack>
                     <Box>
                         <Button variant="contained" size="large" onClick={handleOpenPreview}>

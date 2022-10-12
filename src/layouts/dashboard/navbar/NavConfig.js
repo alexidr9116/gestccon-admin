@@ -53,6 +53,7 @@ const navConfig = [
         children: [
           { title: 'Condominium', path: PATH_DASHBOARD.master.list},
           { title: 'Block', path: PATH_DASHBOARD.master.block},
+          { title: 'Access Configuration', path: PATH_DASHBOARD.master.access},
           { title: 'Access Configuration', path: PATH_DASHBOARD.user.list },
           { title: 'Quotes', path: PATH_DASHBOARD.user.new },
           
@@ -64,9 +65,9 @@ const navConfig = [
         path: PATH_DASHBOARD.user.root,
         icon: 'bi:shield-lock-fill',
         children: [
-          { title: 'Environment', path: PATH_DASHBOARD.user.profile },
-          { title: 'Provide', path: PATH_DASHBOARD.user.cards },
-          { title: 'User', path: PATH_DASHBOARD.user.list },
+          { title: 'Environment', path: PATH_DASHBOARD.registeration.environment },
+          { title: 'Condominium', path: PATH_DASHBOARD.registeration.condominium },
+          { title: 'User', path: PATH_DASHBOARD.registeration.user },
         ],
       },
       // Report
