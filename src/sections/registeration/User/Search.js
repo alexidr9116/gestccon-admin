@@ -33,16 +33,16 @@ export default function Search() {
 
     const RegisterForm = Yup.object().shape({
         name: Yup.string().required('Name field is required'),
-        cost: Yup.number().required('Cost field is required'),
+        email: Yup.number().required('Cost field is required'),
+        block: Yup.number().required('Cost field is required'),
+        apartment: Yup.number().required('Cost field is required'),
     });
 
     const defaultValues = {
         name: '',
-        cost: 0,
-        image: '',
-        perRevervation: 0,
-        showAll: 0,
-        state: 0,
+        email: '',
+        block: '',
+        apartment: '',
     };
 
     const methods = useForm({
@@ -75,53 +75,34 @@ export default function Search() {
     return (
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={3} paddingTop={1}>
-                <Typography variant='subtitle1'>Environment information</Typography>
-                <Typography variant='subtitle2'>Here you will define the information about the environment</Typography>
-                <Stack gap={1} paddingBottom={1}>
+                <Typography variant='subtitle1'>Do a Search</Typography>
+                <Typography variant='subtitle2'>Here you can search for registered users and make edits.</Typography>
+                <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
                     <RHFTextField name="name" label="Name" />
-                    <RHFUploadSingleFile name="image" />
-                    <RHFTextField name="cost" label="Booking cost" />
+                    <RHFTextField name="email" label="Email" />
                 </Stack>
-                <Stack gap={1}>
-                    <Typography variant='subtitle1'>Environment setting</Typography>
-                    <Typography variant='subtitle2'>Duration of servations</Typography>
-                    <RHFToggleGroup
-                        options={[
-                            { value: 0, label: 'Per hour' },
-                            { value: 1, label: 'Per Day' },
-                        ]}
-                    />
-                    <Typography variant='subtitle2'>Will it appear for everyone?</Typography>
-                    <RHFToggleGroup
-                        options={[
-                            { value: 0, label: 'Yes' },
-                            { value: 1, label: 'No' },
-                            { value: 2, label: 'Admins only' },
-                        ]}
-                    />
-                    <Typography variant='subtitle2'>Environment status</Typography>
-                    <RHFToggleGroup
-                        options={[
-                            {value:0, label:'Active'},
-                            {value:1, label:'Inactive'},
-                        ]}
-                    />
-                    <Typography variant='subtitle2'>Status pattern</Typography>
-                    <RHFToggleGroup
-                        options={[
-                            {value:0, label:'1st on hold'},
-                            {value:1, label:'Confirmed'},
-                            {value:2, label:'Expired'},
-                            {value:3, label:'Already Charged'},
-                            {value:4, label:'Prebooking'},
-                        ]}
-                    />
-                    
+                <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
+                    <RHFSelect name="block" label="Block">
+                        {["CATEGORY_OPTION"].map((category, index) => (
+                            <option key={index} value={category}>
+                                {category}
+                            </option>
+
+                        ))}
+                    </RHFSelect>
+                    <RHFSelect name="apartment" label="Apartment">
+                        {["CATEGORY_OPTION"].map((category, index) => (
+                            <option key={index} value={category}>
+                                {category}
+                            </option>
+
+                        ))}
+                    </RHFSelect>
                 </Stack>
 
                 <Box>
                     <Button variant="contained"  >
-                        Register
+                        Search
                     </Button>
                 </Box>
             </Stack>

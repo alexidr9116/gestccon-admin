@@ -81,6 +81,7 @@ export default function PortalAccess() {
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3}  paddingTop = {1}>
                     <Typography variant='subtitle1'>Change Permissions</Typography>
+                    <Typography variant='subtitle2'>Select a section to view its permissions.</Typography>
                     <Stack sx={{flexDirection:{md:'row', xs:'column'}}} gap={2}>
                     <RHFSelect name="profile" label="Profile">
                             {["CATEGORY_OPTION"].map((category, index) => (

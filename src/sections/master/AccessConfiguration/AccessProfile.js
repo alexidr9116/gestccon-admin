@@ -81,6 +81,7 @@ export default function AccessProfile() {
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3}  paddingTop = {1}>
                     <Typography variant='subtitle1'>Change Permissions</Typography>
+                    <Typography variant='subtitle2'>Select a section to view its permissions.</Typography>
                     <Stack sx={{flexDirection:{md:'row', xs:'column'}}} gap={2}>
                     <RHFTextField name="profile" label="Profile" />
                     </Stack>

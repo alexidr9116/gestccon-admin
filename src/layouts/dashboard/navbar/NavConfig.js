@@ -51,10 +51,8 @@ const navConfig = [
         path: PATH_DASHBOARD.master.root,
         icon: 'bi:card-checklist',
         children: [
-          { title: 'Condominium', path: PATH_DASHBOARD.master.list},
           { title: 'Block', path: PATH_DASHBOARD.master.block},
           { title: 'Access Configuration', path: PATH_DASHBOARD.master.access},
-          { title: 'Access Configuration', path: PATH_DASHBOARD.user.list },
           { title: 'Quotes', path: PATH_DASHBOARD.user.new },
           
         ],

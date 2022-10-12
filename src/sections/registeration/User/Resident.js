@@ -36,7 +36,8 @@ export default function Resident() {
         email: Yup.string().required('Email field is required'),
         password: Yup.string().required('Password field is required'),
         cell: Yup.string().required('Cell field is required'),
-        block: Yup.string().required('Block field is required'),
+        block: Yup.string().required('Password field is required'),
+        apartment: Yup.string().required('Password field is required'),
         apart: Yup.string().required('Apartment field is required'),
         roleId: Yup.string().required('Profile field is required'),
 
@@ -47,6 +48,8 @@ export default function Resident() {
         email: '',
         password: '',
         cell: '',
+        block: '',
+        apartment: '',
         roleId: '',
         mayAccessSite:'true',
         releasePermission:'true',
@@ -97,7 +100,7 @@ export default function Resident() {
     return (
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
             <Stack spacing={3} paddingTop={1}>
-                <Typography variant='subtitle1'>Administrator information</Typography>
+                <Typography variant='subtitle1'>User information</Typography>
                 <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
                 <Stack gap={1} paddingBottom={1} sx={{ flexDirection: {xs:'column',md:'row'},justifyContent:'space-between' }}>
 
@@ -129,10 +132,27 @@ export default function Resident() {
 
                 </Stack>
 
+                <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
+                    <RHFSelect name="block" label="Block" sx={{ mb: 2 }}>
+                        {["ROLES"].map((category, index) => (
+                            <option key={index} value={category}>
+                                {category}
+                            </option>
 
+                        ))}
+                    </RHFSelect>
+                    <RHFSelect name="apartment" label="Apartment" sx={{ mb: 2 }}>
+                        {["ROLES"].map((category, index) => (
+                            <option key={index} value={category}>
+                                {category}
+                            </option>
+
+                        ))}
+                    </RHFSelect>
+                </Stack>
                 <Stack gap={1}>
                     <Typography variant='subtitle1'>User settings and permissions</Typography>
-                    <RHFSelect name="roleId" label="Profile" sx={{ mb: 2 }}>
+                    <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
                         {["ROLES"].map((category, index) => (
                             <option key={index} value={category}>
                                 {category}
@@ -142,7 +162,7 @@ export default function Resident() {
                     </RHFSelect>
                     <Grid container spacing={1}>
                         <Grid item xs={12} md={5}>
-                            <Typography variant='subtitle1'>May access web?</Typography>
+                            <Typography variant='subtitle1'>Will you receive messages?</Typography>
                             <RHFToggleGroup
                                 name='mayAccessSite'
                                 options={[
@@ -153,7 +173,7 @@ export default function Resident() {
                             />
                         </Grid>
                         <Grid item xs={12} md={3}>
-                            <Typography variant='subtitle1'>Release Permission</Typography>
+                            <Typography variant='subtitle1'>Can you make reservations?</Typography>
                             <RHFToggleGroup
                                 name='releasePermission'
                                 options={[
@@ -167,8 +187,8 @@ export default function Resident() {
                             <RHFToggleGroup
                                 name='status'
                                 options={[
-                                    { value: '1', label: 'Yes' },
-                                    { value: '0', label: 'No' },
+                                    { value: '1', label: 'Active' },
+                                    { value: '0', label: 'InActive' },
                                 ]}
                             />
                         </Grid>

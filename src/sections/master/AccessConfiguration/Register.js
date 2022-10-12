@@ -81,6 +81,7 @@ export default function Register() {
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3}  paddingTop = {1}>
                     <Typography variant='subtitle1'>Registeration Information</Typography>
+                    <Typography variant='subtitle2'>Here you will define the information about the registration.</Typography>
                     <Stack sx={{flexDirection:{md:'row', xs:'column'}}} gap={2}>
                         <RHFTextField name="name" label="Name" />
                     </Stack>
