@@ -72,7 +72,7 @@ function AuthProvider({ children }) {
         const accessToken = localStorage.getItem('accessToken');
         if (accessToken && isValidToken(accessToken)) {
           setSession(accessToken);
-
+          
           // const response = await axios.get('/api/account/my-account');
           // const { user } = response.data;
           const user = {
@@ -110,12 +110,13 @@ function AuthProvider({ children }) {
   }, []);
 
   const login = async (email, password) => {
-    const response = await axios.post('/api/account/login', {
-      email,
-      password,
-    });
-    const { accessToken, user } = response.data;
-
+    // const response = await axios.post('/api/account/login', {
+    //   email,
+    //   password,
+    // });
+    // const { accessToken, user } = response.data;
+    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI4ODY0YzcxNy01ODdkLTQ3MmEtOTI5YS04ZTVmMjk4MDI0ZGEtMCIsImlhdCI6MTY2NTQ5MTQ0NiwiZXhwIjoxNjY1NzUwNjQ2fQ.ZeSWQmd2dguq3J7bWFdUQU61G9HeC-gS_cdcKA6HRBM';
+    const user ={name:''}
     setSession(accessToken);
 
     dispatch({
