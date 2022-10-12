@@ -13,7 +13,7 @@ import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, B
 // routes
 
 // components
-import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile } from '../../../components/hook-form';
+import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
 
 // ----------------------------------------------------------------------
 

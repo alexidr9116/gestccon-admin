@@ -13,7 +13,7 @@ import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, B
 // routes
 
 // components
-import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
+import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
 
 // ----------------------------------------------------------------------
 
@@ -28,47 +28,39 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
 export default function Edit() {
     const navigate = useNavigate();
 
-    const [open, setOpen] = useState(false);
-
     const { enqueueSnackbar } = useSnackbar();
 
-    const handleOpenPreview = () => {
-        setOpen(true);
-    };
-
-    const handleClosePreview = () => {
-        setOpen(false);
-    };
-
     const RegisterForm = Yup.object().shape({
-        name: Yup.string().required('IP Address is required'),
-        image: Yup.string().required('IP Address is required'),
-        site: Yup.string().required('IP Address is required'),
-        email: Yup.string().required('IP Address is required'),
-        telphone: Yup.string().required('IP Address is required'),
-        zipcode: Yup.string().required('IP Address is required'),
-        place: Yup.string().required('IP Address is required'),
-        number: Yup.string().required('IP Address is required'),
-        neighborhood: Yup.string().required('IP Address is required'),
-        type: Yup.string().required('IP Address is required'),
-        city: Yup.string().required('IP Address is required'),
-        state: Yup.string().required('IP Address is required'),
-        email: Yup.string().required('IP Address is required'),
+        name: Yup.string().required('Name field is required'),
+        email: Yup.string().required('Email field is required'),
+        phoneNumber: Yup.string().required('PhoneNumber field is required'),
+        CEP: Yup.string().required('CEP field is required'),
+        publicPlace: Yup.string().required('Public place field is required'),
+        zip: Yup.string().required('Zip code field is required'),
+        condoNumber: Yup.string().required('Condonumber field is required'),
+        neighbohood: Yup.string().required('Neighbohood field is required'),
+        streetType: Yup.string().required('Street type field is required'),
+        city: Yup.string().required('City field is required'),
+        state: Yup.string().required('State field is required'),
+        reservationEmailType: Yup.string().required('Email Reservation field is required'),
     });
 
     const defaultValues = {
         name: '',
-        image: '',
-        site: true,
+        siteAddress: '',
         email: '',
-        telephone: '',
-        zipcode: '',
-        number: '',
-        neighborhood: '',
-        type: '',
+        phoneNumber: '',
+        CEP: '',
+        publicPlace: '',
+        condoNumber: '',
+        neighbohood: '',
+        streetType: '',
         city: '',
         state: '',
-        email: '',
+        reservationEmailType: '',
+        guestList: '0',
+        cardPosition: '0',
+        validateBirth: '0',
     };
 
     const methods = useForm({
@@ -86,12 +78,25 @@ export default function Edit() {
     } = methods;
 
     const values = watch();
-
+    const handleDrop = useCallback(
+        (acceptedFiles) => {
+          const file = acceptedFiles[0];
+    
+          if (file) {
+            setValue(
+              'image',
+              Object.assign(file, {
+                preview: URL.createObjectURL(file),
+              })
+            );
+          }
+        },
+        [setValue]
+      );
     const onSubmit = async () => {
         try {
             await new Promise((resolve) => setTimeout(resolve, 500));
             reset();
-            handleClosePreview();
             enqueueSnackbar('Post success!');
         } catch (error) {
             console.error(error);
@@ -100,45 +105,86 @@ export default function Edit() {
 
 
     return (
-        <>
-            <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-                <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Condominium Information</Typography>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFTextField name="name" label="Condominium Name" />
-                        <RHFTextField name="image" label="Image" />
-                        <RHFTextField name="site" label="Site"
-                            InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
-                    </Stack>
+        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+            <Stack spacing={3} paddingTop={1}>
+                <Typography variant='subtitle1'>Condominium information</Typography>
+                <RHFUploadSingleFile name="image" onDrop = {handleDrop} />
+                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                    <RHFTextField name="name" label="Name" />
+                    <RHFTextField name="siteAddress" label="Website" InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
                 </Stack>
-                <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Condo Address</Typography>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                    <RHFTextField name="neighborhood" label="Neighborhood" />
-                        <RHFSelect name="type" label="Type of Street">
-                            {["CATEGORY_OPTION"].map((category, index) => (
-                                <option key={index} value={category}>
-                                    {category}
-                                </option>
+                <Typography variant='subtitle1'>Condominium Contact</Typography>
+                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                    <RHFTextField name="email" label="Email" />
+                    <RHFTextField name="phoneNumber" label="Phone Number" />
+                </Stack>
+                <Typography variant='subtitle1'>Condominium Address</Typography>
+                <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                    <RHFTextField name="zip" label="Zip code" />
+                    <RHFTextField name="publicPlace" label="Public place" />
+                    <RHFTextField name="condoNumber" label="Number" />
+                </Stack>
+                <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                    <RHFTextField name="city" label="City" />
+                    <RHFTextField name="state" label="State" />
 
-                            ))}
-                        </RHFSelect>
-                    </Stack>
                 </Stack>
-                <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Condo Settings and Permisions </Typography>
-                    <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                        <RHFTextField name="city" label="City" />
-                        <RHFTextField name="state" label="State " />
-                    </Stack>
-                    <Box>
-                        <Button variant="contained" size="large" onClick={handleOpenPreview}>
-                            Register
-                        </Button>
-                    </Box>
+                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                    <RHFTextField name="neighbohood" label="Neighborhood"  />
+                    <RHFTextField name="streetType" label="Type of street" />
                 </Stack>
-            </FormProvider>
+                <Typography variant='subtitle1'>Condominium setting and permission</Typography>
+                <Stack gap={1}>
+                    <RHFSelect name="reservationEmailType" label="Reservation Email" sx ={{mb:2}}>
+                        {["CATEGORY_OPTION"].map((category, index) => (
+                            <option key={index} value={category}>
+                                {category}
+                            </option>
 
-        </>
+                        ))}
+                    </RHFSelect>
+                    <Grid container spacing={1}>
+                        <Grid item xs={12} md={5}>
+                            <Typography variant='subtitle1'>Guest List</Typography>
+                            <RHFToggleGroup
+                                name = 'guestList'
+                                options={[
+                                    { value: '0', label: 'Typed list' },
+                                    { value: '1', label: 'Upload' },
+                                    { value: '2', label: 'Both' },
+                                ]}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Typography variant='subtitle1'>Card Position</Typography>
+                            <RHFToggleGroup
+                                name = 'cardPosition'
+                                options={[
+                                    { value: '0', label: 'Vertical' },
+                                    { value: '1', label: 'Horizontal' },
+                                ]}
+                            />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                            <Typography variant='subtitle1'>Validate birth?</Typography>
+                            <RHFToggleGroup
+                                name = 'validateBirth'
+                                options={[
+                                    { value: '1', label: 'Yes' },
+                                    { value: '0', label: 'No' },
+                                ]}
+                            />
+                        </Grid>
+                    </Grid>
+
+                </Stack>
+
+                <Box>
+                    <LoadingButton variant="contained" loading = {isSubmitting} type ={'submit'}>
+                        Update
+                    </LoadingButton>
+                </Box>
+            </Stack>
+        </FormProvider>
     );
 }

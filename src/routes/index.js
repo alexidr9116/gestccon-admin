@@ -86,7 +86,7 @@ export default function Router() {
         {
           path: 'registeration',
           children: [
-            { element: <Navigate to="/dashboard/e-commerce/shop" replace />, index: true },
+            { element: <Navigate to="/dashboard/user/profile" replace />, index: true },
             { path: 'environment', element: <Environment /> },
             { path: 'condominium', element: <Condominium /> },
             { path: 'user', element: <User /> },
@@ -207,10 +207,12 @@ const NewPassword = Loadable(lazy(() => import('../pages/auth/NewPassword')));
 const VerifyCode = Loadable(lazy(() => import('../pages/auth/VerifyCode')));
 
 // DASHBOARD
-//REGISTERATION
+
+// REGISTERATION
 const Environment = Loadable(lazy(() => import('../pages/dashboard/registeration/Environment')));
 const Condominium = Loadable(lazy(() => import('../pages/dashboard/registeration/Condominium')));
 const User = Loadable(lazy(() => import('../pages/dashboard/registeration/User')));
+
 // GENERAL
 const GeneralApp = Loadable(lazy(() => import('../pages/dashboard/GeneralApp')));
 const GeneralEcommerce = Loadable(lazy(() => import('../pages/dashboard/GeneralEcommerce')));

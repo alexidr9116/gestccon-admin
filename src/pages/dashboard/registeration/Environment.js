@@ -8,8 +8,8 @@ import useSettings from '../../../hooks/useSettings';
 // components
 import Page from '../../../components/Page';
 import HeaderBreadcrumbs from '../../../components/HeaderBreadcrumbs';
-import Register from '../../../sections/registration/Environment/Register';
-import Search from '../../../sections/registration/Environment/Search';
+import Register from '../../../sections/registeration/Environment/Register';
+import Search from '../../../sections/registeration/Environment/Search';
 
 
 // sections
@@ -32,7 +32,6 @@ export default function Environment() {
                     links={[
                         { name: 'Registeration' },
                         { name: 'Environment' },
-
                     ]}
                 />
                 <Tabs onChange={handleChange} value={selectedTab} allowScrollButtonsMobile

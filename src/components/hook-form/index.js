@@ -7,5 +7,6 @@ export { default as RHFEditor } from './RHFEditor';
 export { default as RHFSlider } from './RHFSlider';
 export { default as RHFTextField } from './RHFTextField';
 export { default as RHFRadioGroup } from './RHFRadioGroup';
+export { default as RHFToggleGroup } from './RHFToogleGroup';
 
 export { default as FormProvider } from './FormProvider';

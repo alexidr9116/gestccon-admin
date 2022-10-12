@@ -69,7 +69,8 @@ export const PATH_DASHBOARD = {
     root: path(ROOTS_DASHBOARD, '/registeration'),
     environment: path(ROOTS_DASHBOARD, '/registeration/environment'),
     condominium: path(ROOTS_DASHBOARD, '/registeration/condominium'),
-    
+    user: path(ROOTS_DASHBOARD, '/registeration/user'),
+
   },
   master: {
     root: path(ROOTS_DASHBOARD, '/master-panel'),

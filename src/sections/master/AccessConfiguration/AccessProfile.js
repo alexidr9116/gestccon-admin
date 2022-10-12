@@ -82,7 +82,7 @@ export default function AccessProfile() {
                 <Stack spacing={3}  paddingTop = {1}>
                     <Typography variant='subtitle1'>Change Permissions</Typography>
                     <Stack sx={{flexDirection:{md:'row', xs:'column'}}} gap={2}>
-                        <RHFTextField name="profile" label="Profile" />
+                    <RHFTextField name="profile" label="Profile" />
                     </Stack>
                     <Box display="flex" >
                         <Button variant="contained" size="large" onClick={handleOpenPreview} sx={{mr:"20px"}}>

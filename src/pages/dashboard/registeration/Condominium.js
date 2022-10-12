@@ -8,7 +8,7 @@ import useSettings from '../../../hooks/useSettings';
 // components
 import Page from '../../../components/Page';
 import HeaderBreadcrumbs from '../../../components/HeaderBreadcrumbs';
-import Edit from '../../../sections/registration/Condominium/Edit';
+import Edit from '../../../sections/registeration/Condominium/Edit';
 
 // sections
 
@@ -36,7 +36,7 @@ export default function Condominium() {
                 <Tabs onChange={handleChange} value={selectedTab} allowScrollButtonsMobile
                     variant="scrollable"
                     scrollButtons="auto"   sx={{ px: 2, bgcolor: 'background.neutral' }}>
-                    <Tab label="To Edit" mx={1} value={0} />
+                    <Tab label="Edit" mx={1} value={0} />
 
                 </Tabs>
 
