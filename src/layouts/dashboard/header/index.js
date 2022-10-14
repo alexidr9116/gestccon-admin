@@ -92,6 +92,7 @@ export default function DashboardHeader({ onOpenSidebar, isCollapse = false, ver
           <IconButtonAnimate onClick = {handleTheme}  sx = {{mr:1, color:'text.primary'}}>
           <Iconify icon = {`${themeMode === 'dark' ?'ph:sun-duotone' : 'ph:moon-duotone' }`} />
           </IconButtonAnimate>
+          <AccountPopover />
           {/* <NotificationsPopover /> */}
 
         </Stack>

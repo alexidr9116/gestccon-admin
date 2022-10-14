@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 // form
@@ -9,11 +9,14 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, InputAdornment } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, InputAdornment, Select } from '@mui/material';
 // routes
 
 // components
 import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
+import useAuth from '../../../hooks/useAuth';
+import axios from '../../../utils/axios';
+import { HOST_API } from '../../../config';
 
 // ----------------------------------------------------------------------
 
@@ -24,17 +27,23 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
 }));
 
 // ----------------------------------------------------------------------
-
+const mailOptions = [
+    { value: 'portal', label: "Term Portal" },
+    { value: 'panel', label: "Term Panel" },
+    { value: 'both', label: "Both" },
+    { value: 'none', label: "None" },
+]
+// ----------------------------------------------------------------------
 export default function Edit() {
     const navigate = useNavigate();
-
+    const { user, initialize } = useAuth();
     const { enqueueSnackbar } = useSnackbar();
-
+    const [mode, setMode] = useState('update');
+    const [condominiums, setCondominiums] = useState([]);
     const RegisterForm = Yup.object().shape({
         name: Yup.string().required('Name field is required'),
         email: Yup.string().required('Email field is required'),
         phoneNumber: Yup.string().required('PhoneNumber field is required'),
-        CEP: Yup.string().required('CEP field is required'),
         publicPlace: Yup.string().required('Public place field is required'),
         zip: Yup.string().required('Zip code field is required'),
         condoNumber: Yup.string().required('Condonumber field is required'),
@@ -45,23 +54,24 @@ export default function Edit() {
         reservationEmailType: Yup.string().required('Email Reservation field is required'),
     });
 
-    const defaultValues = {
-        name: '',
-        siteAddress: '',
-        email: '',
-        phoneNumber: '',
-        CEP: '',
-        publicPlace: '',
-        condoNumber: '',
-        neighbohood: '',
-        streetType: '',
-        city: '',
-        state: '',
-        reservationEmailType: '',
-        guestList: '0',
-        cardPosition: '0',
-        validateBirth: '0',
-    };
+    const defaultValues = useMemo(() => ({
+        name: user.condo?.name || '',
+        siteAddress: user.condo?.siteAddress || '',
+        email: user.condo?.email || '',
+        image: `${HOST_API}${user.condo?.image || ''}`,
+        phoneNumber: user.condo?.phoneNumber || '',
+        publicPlace: user.condo?.publicPlace || '',
+        condoNumber: user.condo?.condoNumber || '',
+        neighbohood: user.condo?.neighbohood || '',
+        streetType: user.condo?.streetType || '',
+        city: user.condo?.city || '',
+        zip: user.condo?.zip || '',
+        state: user.condo?.state || '',
+        reservationEmailType: user.condo?.reservationEmailType || 'both',
+        guestList: user.condo?.guestList || '0',
+        cardPosition: user.condo?.cardPosition || '0',
+        validateBirth: `${user.condo?.validateBirth}` || 'true',
+    }), [user?.condo]);
 
     const methods = useForm({
         resolver: yupResolver(RegisterForm),
@@ -80,111 +90,188 @@ export default function Edit() {
     const values = watch();
     const handleDrop = useCallback(
         (acceptedFiles) => {
-          const file = acceptedFiles[0];
-    
-          if (file) {
-            setValue(
-              'image',
-              Object.assign(file, {
-                preview: URL.createObjectURL(file),
-              })
-            );
-          }
+            const file = acceptedFiles[0];
+
+            if (file) {
+                setValue(
+                    'image',
+                    Object.assign(file, {
+                        preview: URL.createObjectURL(file),
+                    })
+                );
+            }
         },
         [setValue]
-      );
-    const onSubmit = async () => {
+    );
+    useEffect(() => {
+        if (user?.disId?.includes('super-administrator')) {
+            axios.get('/api/admin/condominium/gets').then(res => {
+                setCondominiums(res.data.data.condominiums);
+            }).catch(err => {
+
+            })
+        }
+
+    }, [])
+    const onSubmit = async (data) => {
         try {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            reset();
-            enqueueSnackbar('Post success!');
+            const iData = new FormData();
+
+            if (typeof data.image === 'string') {
+                axios.post('/api/admin/condominium/set-condo-without-image', { ...data, id: (mode === 'update' ? (user?.condo?.id || 0) : 0) }).then(res => {
+                    if (res.status === 200) {
+                        enqueueSnackbar(res.data?.message);
+                        initialize();
+                        reset(defaultValues)
+                    }
+                    else {
+                        enqueueSnackbar(res.data?.message || "Failed your request", { variant: 'error' });
+                    }
+                }).catch(err => enqueueSnackbar("Internal server error", { variant: 'error' }))
+            }
+            if (typeof data.image === 'object') {
+                iData.append("name", data.name);
+                iData.append("siteAddress", data.siteAddress);
+                iData.append("email", data.email);
+                iData.append("image", data.image);
+                iData.append("phoneNumber", data.phoneNumber);
+                iData.append("publicPlace", data.publicPlace);
+                iData.append("condoNumber", data.condoNumber);
+                iData.append("neighbohood", data.neighbohood);
+                iData.append("streetType", data.streetType);
+                iData.append("city", data.city);
+                iData.append("state", data.state);
+                iData.append("zip", data.zip);
+                iData.append("reservationEmailType", data.reservationEmailType);
+                iData.append("guestList", data.guestList);
+                iData.append("cardPosition", data.cardPosition);
+                iData.append("validateBirth", data.validateBirth);
+                iData.append("id", (mode === 'update' ? (user?.condo?.id || 0) : 0));
+                axios.post('/api/admin/condominium/set-condo-with-image', iData).then(res => {
+                    if (res.status === 200) {
+                        enqueueSnackbar(res.data?.message);
+                        initialize();
+                        reset(defaultValues)
+                    }
+                    else {
+                        enqueueSnackbar(res.data?.message || "Failed your request", { variant: 'error' });
+                    }
+                }).catch(err => { enqueueSnackbar("Internal server error", { variant: 'error' }); })
+            }
+
         } catch (error) {
             console.error(error);
         }
     };
 
+    const handleChangeCondo = (e, value)=>{
+        axios.post('/api/admin/user/update-condo',{condoId:value.id}).then(res=>{
+            enqueueSnackbar(res.data?.message);
+            initialize();
+        })
+    }
+    useEffect(()=>{
+        console.log(user)
+        reset(defaultValues)
+    },[user,reset,defaultValues]);
 
     return (
-        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={3} paddingTop={1}>
-                <Typography variant='subtitle1'>Condominium information</Typography>
-                <RHFUploadSingleFile name="image" onDrop = {handleDrop} />
-                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                    <RHFTextField name="name" label="Name" />
-                    <RHFTextField name="siteAddress" label="Website" InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
+        <>
+            {user?.disId === 'super-administrator' &&
+                <Stack padding={2}>
+                    <Autocomplete options={condominiums} renderInput = {(params)=><TextField {...params} label = "Select Your Condo" />}  isOptionEqualToValue={(option,value)=>(option.name === value.name)}     getOptionLabel={(option) => option.name} onChange={handleChangeCondo} />
+                    
                 </Stack>
-                <Typography variant='subtitle1'>Condominium Contact</Typography>
-                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                    <RHFTextField name="email" label="Email" />
-                    <RHFTextField name="phoneNumber" label="Phone Number" />
-                </Stack>
-                <Typography variant='subtitle1'>Condominium Address</Typography>
-                <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                    <RHFTextField name="zip" label="Zip code" />
-                    <RHFTextField name="publicPlace" label="Public place" />
-                    <RHFTextField name="condoNumber" label="Number" />
-                </Stack>
-                <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                    <RHFTextField name="city" label="City" />
-                    <RHFTextField name="state" label="State" />
+            }
+            <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+                <Stack spacing={3} paddingTop={1}>
+                    <Typography variant='subtitle1'>Condominium information</Typography>
+                    <RHFUploadSingleFile name="image" onDrop={handleDrop} />
+                    <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                        <RHFTextField name="name" label="Name" />
+                        <RHFTextField name="siteAddress" label="Website" InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
+                    </Stack>
+                    <Typography variant='subtitle1'>Condominium Contact</Typography>
+                    <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                        <RHFTextField name="email" label="Email" />
+                        <RHFTextField name="phoneNumber" label="Phone Number" />
+                    </Stack>
+                    <Typography variant='subtitle1'>Condominium Address</Typography>
+                    <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                        <RHFTextField name="zip" label="Zip code" />
+                        <RHFTextField name="publicPlace" label="Public place" />
+                        <RHFTextField name="condoNumber" label="Number" />
+                    </Stack>
+                    <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                        <RHFTextField name="city" label="City" />
+                        <RHFTextField name="state" label="State" />
 
-                </Stack>
-                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                    <RHFTextField name="neighbohood" label="Neighborhood"  />
-                    <RHFTextField name="streetType" label="Type of street" />
-                </Stack>
-                <Typography variant='subtitle1'>Condominium setting and permission</Typography>
-                <Stack gap={1}>
-                    <RHFSelect name="reservationEmailType" label="Reservation Email" sx ={{mb:2}}>
-                        {["CATEGORY_OPTION"].map((category, index) => (
-                            <option key={index} value={category}>
-                                {category}
-                            </option>
+                    </Stack>
+                    <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                        <RHFTextField name="neighbohood" label="Neighborhood" />
+                        <RHFTextField name="streetType" label="Type of street" />
+                    </Stack>
+                    <Typography variant='subtitle1'>Condominium setting and permission</Typography>
+                    <Stack gap={1}>
+                        <RHFSelect name="reservationEmailType" label="Reservation Email" sx={{ mb: 2 }}>
+                            {mailOptions.map((option, index) => (
+                                <option key={index} value={option.value}>
+                                    {option.label}
+                                </option>
 
-                        ))}
-                    </RHFSelect>
-                    <Grid container spacing={1}>
-                        <Grid item xs={12} md={5}>
-                            <Typography variant='subtitle1'>Guest List</Typography>
-                            <RHFToggleGroup
-                                name = 'guestList'
-                                options={[
-                                    { value: '0', label: 'Typed list' },
-                                    { value: '1', label: 'Upload' },
-                                    { value: '2', label: 'Both' },
-                                ]}
-                            />
+                            ))}
+                        </RHFSelect>
+                        <Grid container spacing={1}>
+                            <Grid item xs={12} md={5}>
+                                <Typography variant='subtitle1'>Guest List</Typography>
+                                <RHFToggleGroup
+                                    name='guestList'
+                                    options={[
+                                        { value: '0', label: 'Typed list' },
+                                        { value: '1', label: 'Upload' },
+                                        { value: '2', label: 'Both' },
+                                    ]}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <Typography variant='subtitle1'>Card Position</Typography>
+                                <RHFToggleGroup
+                                    name='cardPosition'
+                                    options={[
+                                        { value: '0', label: 'Vertical' },
+                                        { value: '1', label: 'Horizontal' },
+                                    ]}
+                                />
+                            </Grid>
+                            <Grid item xs={12} md={3}>
+                                <Typography variant='subtitle1'>Validate birth?</Typography>
+                                <RHFToggleGroup
+                                    name='validateBirth'
+                                    options={[
+                                        { value: 'true', label: 'Yes' },
+                                        { value: 'false', label: 'No' },
+                                    ]}
+                                />
+                            </Grid>
                         </Grid>
-                        <Grid item xs={12} md={3}>
-                            <Typography variant='subtitle1'>Card Position</Typography>
-                            <RHFToggleGroup
-                                name = 'cardPosition'
-                                options={[
-                                    { value: '0', label: 'Vertical' },
-                                    { value: '1', label: 'Horizontal' },
-                                ]}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                            <Typography variant='subtitle1'>Validate birth?</Typography>
-                            <RHFToggleGroup
-                                name = 'validateBirth'
-                                options={[
-                                    { value: '1', label: 'Yes' },
-                                    { value: '0', label: 'No' },
-                                ]}
-                            />
-                        </Grid>
-                    </Grid>
 
+                    </Stack>
+
+                    <Box>
+                        {user?.condo && user?.condo !== null &&
+                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'}>
+                                Update
+                            </LoadingButton>
+                        }
+                        {(user?.disId === 'super-administrator') &&
+                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }}>
+                                Add Condominium
+                            </LoadingButton>
+                        }
+                    </Box>
                 </Stack>
+            </FormProvider>
+        </>
 
-                <Box>
-                    <LoadingButton variant="contained" loading = {isSubmitting} type ={'submit'}>
-                        Update
-                    </LoadingButton>
-                </Box>
-            </Stack>
-        </FormProvider>
     );
 }

@@ -55,6 +55,7 @@ const AuthContext = createContext({
   login: () => Promise.resolve(),
   logout: () => Promise.resolve(),
   register: () => Promise.resolve(),
+  initialize: () => Promise.resolve(),
 });
 
 // ----------------------------------------------------------------------
@@ -65,37 +66,25 @@ AuthProvider.propTypes = {
 
 function AuthProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
-
-  useEffect(() => {
-    const initialize = async () => {
-      try {
-        const accessToken = localStorage.getItem('accessToken');
-        if (accessToken && isValidToken(accessToken)) {
-          setSession(accessToken);
-          
-          // const response = await axios.get('/api/account/my-account');
-          // const { user } = response.data;
-          const user = {
-            name:''
-          }
-          dispatch({
-            type: 'INITIALIZE',
-            payload: {
-              isAuthenticated: true,
-              user,
-            },
-          });
-        } else {
-          dispatch({
-            type: 'INITIALIZE',
-            payload: {
-              isAuthenticated: false,
-              user: null,
-            },
-          });
-        }
-      } catch (err) {
-        console.error(err);
+  const initialize = async () => {
+     
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+ 
+      if (accessToken && isValidToken(accessToken)) {
+        setSession(accessToken);
+        
+        const response = await axios.get('/api/admin/auth/my-account');
+        const { user} = response.data.data;
+       
+        dispatch({
+          type: 'INITIALIZE',
+          payload: {
+            isAuthenticated: true,
+            user,
+          },
+        });
+      } else {
         dispatch({
           type: 'INITIALIZE',
           payload: {
@@ -104,20 +93,31 @@ function AuthProvider({ children }) {
           },
         });
       }
-    };
-
+    } catch (err) {
+      console.error(err);
+      dispatch({
+        type: 'INITIALIZE',
+        payload: {
+          isAuthenticated: false,
+          user: null,
+        },
+      });
+    }
+  };
+  useEffect(() => {
     initialize();
   }, []);
 
   const login = async (email, password) => {
-    // const response = await axios.post('/api/account/login', {
-    //   email,
-    //   password,
-    // });
-    // const { accessToken, user } = response.data;
-    const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI4ODY0YzcxNy01ODdkLTQ3MmEtOTI5YS04ZTVmMjk4MDI0ZGEtMCIsImlhdCI6MTY2NTQ5MTQ0NiwiZXhwIjoxNjY1NzUwNjQ2fQ.ZeSWQmd2dguq3J7bWFdUQU61G9HeC-gS_cdcKA6HRBM';
-    const user ={name:''}
-    setSession(accessToken);
+    const response = await axios.post('/api/admin/auth/login-with-admin', {
+      email,
+      password,
+    });
+    const { token, user } = response.data.data;
+  
+    // const accessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI4ODY0YzcxNy01ODdkLTQ3MmEtOTI5YS04ZTVmMjk4MDI0ZGEtMCIsImlhdCI6MTY2NTQ5MTQ0NiwiZXhwIjoxNjY1NzUwNjQ2fQ.ZeSWQmd2dguq3J7bWFdUQU61G9HeC-gS_cdcKA6HRBM';
+    // const user ={name:''}
+    setSession(token);
 
     dispatch({
       type: 'LOGIN',
@@ -159,6 +159,7 @@ function AuthProvider({ children }) {
         login,
         logout,
         register,
+        initialize,
       }}
     >
       {children}

@@ -21,8 +21,8 @@ export function ProgressBarStyle() {
             width: '100%',
             position: 'fixed',
             zIndex: theme.zIndex.snackbar,
-            backgroundColor: theme.palette.primary.main,
-            boxShadow: `0 0 2px ${theme.palette.primary.main}`,
+            backgroundColor: theme.palette.error.main,
+            boxShadow: `0 0 2px ${theme.palette.error.main}`,
           },
           '& .peg': {
             right: 0,
@@ -32,7 +32,7 @@ export function ProgressBarStyle() {
             display: 'block',
             position: 'absolute',
             transform: 'rotate(3deg) translate(0px, -4px)',
-            boxShadow: `0 0 10px ${theme.palette.primary.main}, 0 0 5px ${theme.palette.primary.main}`,
+            boxShadow: `0 0 10px ${theme.palette.error.main}, 0 0 5px ${theme.palette.error.main}`,
           },
         },
       }}

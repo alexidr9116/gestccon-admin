@@ -10,14 +10,14 @@ import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem } from '@mui/material';
 import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
-import Iconify from '../../../components/Iconify';
+
 import Scrollbar from '../../../components/Scrollbar';
 import axios from '../../../utils/axios';
 
 import { TableEmptyRows, TableHeadCustom, TableMoreMenu, TableNoData, TableSelectedActions } from '../../../components/table';
-
+import Iconify from '../../../components/Iconify';
 // components
-import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile } from '../../../components/hook-form';
+import { RHFSwitch, RHFEditor, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
 
 // ----------------------------------------------------------------------
 
@@ -30,17 +30,22 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
 // ----------------------------------------------------------------------
 const TABLE_HEAD = [
     { id: 'no', label: 'No', align: 'left' },
-    { id: 'name', label: 'Name', align: 'left' },
-    { id: 'title', label: 'Description', align: 'left' },
+    { id: 'blockName', label: 'Block Name', align: 'left' },
+    { id: 'apartName', label: 'Apart Name', align: 'left' },
     { id: '' },
 ];
 
-export default function Register() {
+export default function Block() {
     const navigate = useNavigate();
     const [roles, setRoles] = useState([]);
     const [openMenu, setOpenMenuActions] = useState(null);
-    const [selectedRole, setSelectedRole] = useState(null);
+    const [selectedApart, setSelectedApart] = useState(null);
+    const [blocks, setBlocks] = useState([]);
+    const [aparts, setAparts] = useState([]);
+    const [isApart, setIsApart] = useState(true);
+
     const handleOpenMenu = (event) => {
+
         setOpenMenuActions(event.currentTarget);
     };
 
@@ -64,15 +69,15 @@ export default function Register() {
     const { enqueueSnackbar } = useSnackbar();
 
     const RegisterForm = Yup.object().shape({
-        name: Yup.string().required('Name field is required'),
-        title: Yup.string().required('Description field is required'),
+        blockName: Yup.string().required('Name field is required'),
 
     });
 
     const defaultValues = useMemo(() => ({
-        name: selectedRole?.name || '',
-        title: selectedRole?.title || '',
-    }), [selectedRole]);
+        blockName: selectedApart?.block?.name || '',
+        apartName: selectedApart?.name || '',
+
+    }), [selectedApart]);
 
     const methods = useForm({
         resolver: yupResolver(RegisterForm),
@@ -92,31 +97,44 @@ export default function Register() {
 
     const onSubmit = async (data) => {
         try {
-            const response = await axios.put('/api/admin/role/set-role', {...data, id:selectedRole?.id||'0'});
+            if (isApart && data.apartName === '')
+                return;
+            const response = await axios.put('/api/admin/condominium/set-block-or-apart', { ...data, id: selectedApart?.id || '0', blockId, isApart });
             if (response.status === 200 && response.data.data && response.data.data.role) {
                 enqueueSnackbar(response.data?.message);
             }
             load();
             reset();
-
         } catch (error) {
             console.error(error);
         }
     };
-    const onEditRow = (role) => {
-        setSelectedRole(role);
+    const onEditRow = (apart) => {
+        setSelectedApart(apart);
 
     }
     useEffect(() => {
-
+        console.log(selectedApart)
         reset(defaultValues);
 
-    }, [selectedRole, reset, defaultValues])
-    const onDeleteRow = async (role) => {
+    }, [selectedApart, reset, defaultValues])
+    const [blockId, setBlockId] = useState(null);
+
+    useEffect(() => {
+
+        const b = blocks.filter((block) => block.name === values.blockName);
+        if (b.length > 0) {
+            setBlockId(b[0].id);
+        }
+        else
+            setBlockId(null)
+    }, [values.blockName, blocks]);
+    const onDeleteRow = async (apart) => {
         try {
-            const response = await axios.delete(`/api/admin/role/delete-role/${role.id}`, {});
-            if (response.status === 200 && response.data.data) {
+            const response = await axios.delete(`/api/admin/condominium/delete-apart/${apart.id}`, {});
+            if (response.status === 200) {
                 enqueueSnackbar(response.data?.message);
+              
             }
             load();
             reset();
@@ -124,18 +142,21 @@ export default function Register() {
             console.error(error);
         }
     }
-    const load = async () => {
-
-        try {
-            const response = await axios.get('/api/admin/role/get-roles', {});
-
-            if (response.status === 200 && response.data.data && response.data.data.roles) {
-                setRoles(response.data.data.roles);
+    const load = () => {
+        axios.get('/api/resident/condominium/get-blocks').then(res => {
+            if (res.status === 200) {
+                setBlocks(res.data.data.blocks);
             }
-        }
-        catch (err) {
-            console.log(err)
-        }
+        }).catch(err => {
+
+        })
+        axios.get('/api/resident/condominium/get-aparts').then(res => {
+            if (res.status === 200) {
+                setAparts(res.data.data.aparts);
+            }
+        }).catch(err => {
+
+        })
     }
     useEffect(() => {
         load();
@@ -147,20 +168,25 @@ export default function Register() {
                     <Typography variant='subtitle1'>Registeration Information</Typography>
                     <Typography variant='subtitle2'>Here you will define the information about the registration.</Typography>
                     <Stack gap={2}>
-                        <RHFTextField name="name" label="Name" />
-                        <RHFTextField name="title" label="Description" />
+                        <Stack direction={'row'} gap={1}>
+                            <RHFTextField name="blockName" label="Block name" />
+                            <Button variant='contained' type='submit' onClick={() => setIsApart(false)}>Save</Button>
+                            <Button variant='outlined' onClick={() => setIsApart(false)} disabled={blockId === null}>Delete</Button>
+                        </Stack>
+
+                        <RHFTextField name="apartName" label="Apartment name" disabled={blockId === null} />
                     </Stack>
                     <Box >
-                        <Button variant='outlined' size="large" onClick={() => setSelectedRole(null)} sx={{ mr: 1 }}>
+                        <Button variant='outlined' size="large" onClick={() => {setSelectedApart(null); }} sx={{ mr: 1 }}>
                             Reset
                         </Button>
-                        <LoadingButton variant="contained" size="large" loading={isSubmitting} type="submit">
-                            {(selectedRole === null ? 'Register' : 'Update')}
+                        <LoadingButton variant="contained" disabled={blockId === null} size="large" loading={isSubmitting} type="submit" onClick={() => setIsApart(true)}>
+                            {(selectedApart === null ? 'Register' : 'Update')}
                         </LoadingButton>
                     </Box>
                 </Stack>
                 <Stack spacing={3}>
-                    <Typography variant='subtitle1'>Registered Roles</Typography>
+                    <Typography variant='subtitle1'>Registered Block & Apartments</Typography>
                     <Scrollbar>
                         <TableContainer sx={{ maxWidth: 800, position: 'relative' }}>
                             <Table >
@@ -181,16 +207,16 @@ export default function Register() {
                                 />
 
                                 <TableBody>
-                                    {(roles).map((role, index) => (
+                                    {(aparts).map((apart, index) => (
                                         <TableRow key={index}>
                                             <TableCell>
                                                 {index + 1}
                                             </TableCell>
                                             <TableCell>
-                                                {role.name}
+                                                {apart?.block?.name}
                                             </TableCell>
                                             <TableCell>
-                                                {role.title}
+                                                {apart?.name}
                                             </TableCell>
                                             <TableCell align="right">
                                                 <TableMoreMenu
@@ -201,7 +227,7 @@ export default function Register() {
                                                         <>
                                                             <MenuItem
                                                                 onClick={() => {
-                                                                    onDeleteRow(role);
+                                                                    onDeleteRow(apart);
                                                                     handleCloseMenu();
                                                                 }}
                                                                 sx={{ color: 'error.main' }}
@@ -211,7 +237,7 @@ export default function Register() {
                                                             </MenuItem>
                                                             <MenuItem
                                                                 onClick={() => {
-                                                                    onEditRow(role);
+                                                                    onEditRow(apart);
                                                                     handleCloseMenu();
                                                                 }}
                                                             >
@@ -225,17 +251,13 @@ export default function Register() {
                                         </TableRow>
 
                                     ))}
-
                                     <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, roles.length)} />
-
                                 </TableBody>
                             </Table>
                         </TableContainer>
                     </Scrollbar>
-
                 </Stack>
             </FormProvider>
-
         </>
     );
 }

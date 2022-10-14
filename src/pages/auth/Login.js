@@ -18,6 +18,7 @@ import { LoginForm } from '../../sections/auth/login';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
+  margin:'-16px',
   [theme.breakpoints.up('md')]: {
     display: 'flex',
   },

@@ -60,7 +60,7 @@ const navConfig = [
       // Master Panel
       {
         title: 'Registeration',
-        path: PATH_DASHBOARD.user.root,
+        path: PATH_DASHBOARD.registeration.root,
         icon: 'bi:shield-lock-fill',
         children: [
           { title: 'Environment', path: PATH_DASHBOARD.registeration.environment },

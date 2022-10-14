@@ -187,7 +187,6 @@ export default function Router() {
     },
     {
       path: '/',
-      element: <MainLayout />,
       children: [
         { element: <AuthGuard><Navigate to={PATH_AFTER_LOGIN} replace /></AuthGuard>, index: true },
         { path: 'about-us', element: <About /> },

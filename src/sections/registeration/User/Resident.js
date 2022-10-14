@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSnackbar } from 'notistack';
 import { useNavigate } from 'react-router-dom';
 // form
@@ -9,9 +9,16 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar } from '@mui/material';
+// routes
+import Iconify from '../../../components/Iconify';
+import Scrollbar from '../../../components/Scrollbar';
+import axios from '../../../utils/axios';
+import { TableEmptyRows, TableHeadCustom, TableMoreMenu, TableNoData, TableSelectedActions } from '../../../components/table';
+import { HOST_API } from '../../../config';
 // routes
 
+import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 // components
 import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar } from '../../../components/hook-form';
 
@@ -23,38 +30,53 @@ const LabelStyle = styled(Typography)(({ theme }) => ({
     marginBottom: theme.spacing(1),
 }));
 
+const TABLE_HEAD = [
+    { id: 'no', label: 'No', align: 'left' },
+    { id: 'name', label: 'Name', align: 'left' },
+    { id: 'email', label: 'Email', align: 'left' },
+    { id: 'category', label: 'Category', align: 'left' },
+    { id: 'avatar', label: 'Avatar', align: 'left' },
+    { id: 'status', label: 'Status', align: 'left' },
+    { id: '' },
+];
 // ----------------------------------------------------------------------
 
 export default function Resident() {
     const navigate = useNavigate();
-
+    const [mode, setMode] = useState('view');
+    const [filter, setFilter] = useState('');
     const { enqueueSnackbar } = useSnackbar();
+    const [selectedUser, setSelectedUser] = useState(null);
 
-
+    const [residents, setResidents] = useState([]);
+    const [aparts, setAparts] = useState([]);
+    const [blocks, setBlocks] = useState([]);
+    const [filterBlocks, setFilterBlocks] = useState([]);
+    const [openMenu, setOpenMenuActions] = useState(null);
     const RegisterForm = Yup.object().shape({
         name: Yup.string().required('Name field is required'),
         email: Yup.string().required('Email field is required'),
         password: Yup.string().required('Password field is required'),
         cell: Yup.string().required('Cell field is required'),
-        block: Yup.string().required('Password field is required'),
-        apartment: Yup.string().required('Password field is required'),
+        block: Yup.string().required('Block field is required'),
         apart: Yup.string().required('Apartment field is required'),
-        roleId: Yup.string().required('Profile field is required'),
-
+        category: Yup.string().required('Category field is required'),
     });
 
-    const defaultValues = {
-        name: '',
-        email: '',
+    const defaultValues = useMemo(()=>({
+        name: selectedUser?.name || '',
+        email: selectedUser?.email || '',
         password: '',
-        cell: '',
-        block: '',
-        apartment: '',
-        roleId: '',
-        mayAccessSite:'true',
-        releasePermission:'true',
-        status:'1'
-    };
+        image:`${HOST_API}${selectedUser?.avatar || 'uploads/images/avatar.png'}`,
+        cell: selectedUser?.cell || '',
+        block: selectedUser?.apartment?.blockId || 0,
+        apart: selectedUser?.apartment?.id || 0,
+        category: selectedUser?.category || '',
+        mayReceiveMessage: selectedUser?.mayReceiveMessage || 'true',
+        mayReservation: selectedUser?.mayReservation || 'true',
+        // observation:selectedUser?.observation || 'true',
+        status: selectedUser?.status||'1',
+    }),[selectedUser]);
 
     const methods = useForm({
         resolver: yupResolver(RegisterForm),
@@ -70,13 +92,50 @@ export default function Resident() {
         formState: { isSubmitting, isValid },
     } = methods;
 
-    const values = watch();
+    const block = watch('block');
 
-    const onSubmit = async () => {
+    const onSubmit = async (data) => {
         try {
-            await new Promise((resolve) => setTimeout(resolve, 500));
-            reset();
-            enqueueSnackbar('Post success!');
+            const iData = new FormData();
+            console.log(selectedUser)
+            if (typeof data.image === 'string') {
+                axios.post('/api/admin/user/set-resident-without-image', { ...data, id: (mode === 'edit' ? (selectedUser?.id || 0) : 0) }).then(res => {
+                    if (res.status === 200) {
+                        enqueueSnackbar(res.data?.message);
+                        setSelectedUser(null)
+                        setMode('view')
+                    }
+                    else {
+                        enqueueSnackbar(res.data?.message || "Failed your request", { variant: 'error' });
+                    }
+                }).catch(err => enqueueSnackbar("Internal server error", { variant: 'error' }))
+            }
+            if (typeof data.image === 'object') {
+                iData.append("name", data.name);
+                iData.append("email", data.email);
+                iData.append("image", data.image);
+                iData.append("password", data.password);
+                iData.append("cell", data.cell);
+                iData.append("category", data.category);
+                iData.append("block", data.block);
+                iData.append("apart", data.apart);
+                iData.append("mayReceiveMessage", data.mayReceiveMessage);
+                iData.append("mayReservation", data.mayReservation);
+                // iData.append("observation", data.observation);
+                iData.append("status", data.status);
+                iData.append("id", (mode === 'edit' ? (selectedUser?.id || 0) : 0));
+                axios.post('/api/admin/user/set-resident-with-image', iData).then(res => {
+                    if (res.status === 200) {
+                        enqueueSnackbar(res.data?.message);
+                        setSelectedUser(null)
+                        setMode('view')
+                    }
+                    else {
+                        enqueueSnackbar(res.data?.message || "Failed your request", { variant: 'error' });
+                    }
+                }).catch(err => { enqueueSnackbar("Internal server error", { variant: 'error' }); })
+            }
+
         } catch (error) {
             console.error(error);
         }
@@ -88,7 +147,7 @@ export default function Resident() {
 
             if (file) {
                 setValue(
-                    'avatar',
+                    'image',
                     Object.assign(file, {
                         preview: URL.createObjectURL(file),
                     })
@@ -97,111 +156,277 @@ export default function Resident() {
         },
         [setValue]
     );
+    const onDeleteRow = (user) => {
+
+    }
+    const onSelectRow = (user) => {
+        setSelectedUser(user);
+
+    }
+    const {
+
+        page,
+        order,
+        orderBy,
+        rowsPerPage,
+        //
+        selected,
+
+        //
+        onSort,
+
+    } = useTable();
+    const handleOpenMenu = (event) => {
+
+        setOpenMenuActions(event.currentTarget);
+    };
+
+    const handleCloseMenu = () => {
+        setOpenMenuActions(null);
+    };
+    useEffect(() => {
+        const loadBlocks = async () => {
+            axios.get('/api/resident/condominium/get-blocks').then(res => {
+                if (res.status === 200) {
+                    setBlocks(res.data.data.blocks);
+                }
+            }).catch(err => {
+
+            })
+        }
+        const loadAparts = async () => {
+            axios.get('/api/resident/condominium/get-aparts').then(res => {
+                if (res.status === 200) {
+                    setAparts(res.data.data.aparts);
+                }
+            }).catch(err => {
+
+            })
+        }
+        const loadResidents = async () => {
+            const response = await axios.get('/api/admin/user/get-residents', {});
+
+            if (response.status === 200 && response.data.data && response.data.data.residents) {
+                setResidents(response.data.data.residents);
+            }
+        }
+        if (mode === 'view') {
+            loadResidents();
+            loadBlocks();
+            loadAparts();
+        }
+
+    }, [mode])
+    useEffect(() => {
+        setFilterBlocks(aparts.filter((apart) => `${apart.blockId}` === `${block}`))
+    }, [block, aparts])
     return (
-        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={3} paddingTop={1}>
-                <Typography variant='subtitle1'>User information</Typography>
-                <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
-                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: {xs:'column',md:'row'},justifyContent:'space-between' }}>
+        <>
 
-                    <RHFUploadAvatar name="avatar" onDrop={handleDrop}
-                        helperText={
-                            <Typography
-                                variant="caption"
-                                sx={{
-                                    mt: 2,
-                                    mx: 'auto',
-                                    display: 'block',
-                                    textAlign: 'center',
-                                    color: 'text.secondary',
-                                }}
-                            >
-                                Allowed *.jpeg, *.jpg, *.png, *.gif
-                            </Typography>
-                        } />
-                    <Stack sx = {{flexShrink:1, justifyContent:'space-between',py:2}}>
-                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                            <RHFTextField name="name" label="Name" />
-                            <RHFTextField name="email" label="Email" />
-                        </Stack>
-                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                            <RHFTextField name="password" label="Password" />
-                            <RHFTextField name="cell" label="Cell" />
-                        </Stack>
+            {mode === 'view' &&
+                <>
+                    <Stack marginBottom={2} paddingX={1} direction={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} spacing={1} gap={1}>
+                        <TextField label="Keywords" onChange={(e) => setFilter(e.target.value)} value={filter} />
+                        <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); reset(defaultValues); }}>New Resident</Button>
                     </Stack>
+                    <Scrollbar>
+                        <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                            <Table >
+                                <TableHeadCustom
+                                    order={order}
+                                    orderBy={orderBy}
+                                    headLabel={TABLE_HEAD}
+                                    rowCount={residents?.length}
+                                    numSelected={selected.length}
+                                    onSort={onSort}
+                                // onSelectAllRows={(checked) =>
+                                //     onSelectAllRows(
+                                //         checked,
+                                //         roles.map((row) => row.id)
+                                //     )
+                                // }
+                                />
 
-                </Stack>
+                                <TableBody>
+                                    {(residents.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.category?.name?.includes(filter)))).map((user, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>
+                                                {index + 1}
+                                            </TableCell>
+                                            <TableCell>
+                                                {user?.name}
+                                            </TableCell>
+                                            <TableCell>
+                                                {user?.email}
+                                            </TableCell>
+                                            <TableCell>
+                                                {user?.category}
+                                            </TableCell>
+                                            <TableCell>
+                                                {user?.avatar &&
+                                                    <Avatar sx={{ width: 40, height: 40 }} src={`${HOST_API}${user?.avatar}`} />
+                                                }
+                                            </TableCell>
+                                            <TableCell>
+                                                <Iconify icon={user?.status === 1 ? 'iconoir:verified-badge' : 'codicon:unverified'} sx={{ height: '24px', width: '24px' }} />
+                                            </TableCell>
+                                            <TableCell align="right">
+                                                <TableMoreMenu
+                                                    open={openMenu}
+                                                    onOpen={handleOpenMenu}
+                                                    onClose={handleCloseMenu}
+                                                    actions={
+                                                        <>
+                                                            <MenuItem
+                                                                onClick={() => {
+                                                                    onDeleteRow(user);
+                                                                    handleCloseMenu();
+                                                                }}
+                                                                sx={{ color: 'error.main' }}
+                                                            >
+                                                                <Iconify icon={'eva:trash-2-outline'} />
+                                                                Delete
+                                                            </MenuItem>
+                                                            <MenuItem
+                                                                onClick={() => {
+                                                                    onSelectRow(user);
+                                                                    handleCloseMenu();
+                                                                    setMode('edit')
+                                                                }}
+                                                            >
+                                                                <Iconify icon={'eva:edit-fill'} />
+                                                                Edit
+                                                            </MenuItem>
+                                                        </>
+                                                    }
+                                                />
+                                            </TableCell>
+                                        </TableRow>
 
-                <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                    <RHFSelect name="block" label="Block" sx={{ mb: 2 }}>
-                        {["ROLES"].map((category, index) => (
-                            <option key={index} value={category}>
-                                {category}
-                            </option>
+                                    ))}
+                                    <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, residents.length)} />
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </Scrollbar>
+                </>
+            }
+            {mode !== 'view' &&
+                <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+                    <Stack spacing={3} paddingTop={1}>
+                        <Stack direction={'row'} gap={1} justifyContent="space-between" >
 
-                        ))}
-                    </RHFSelect>
-                    <RHFSelect name="apartment" label="Apartment" sx={{ mb: 2 }}>
-                        {["ROLES"].map((category, index) => (
-                            <option key={index} value={category}>
-                                {category}
-                            </option>
+                            <Typography variant='subtitle1'>Resident information</Typography>
+                            <IconButton onClick={() => setMode('view')}>
+                                <Iconify icon="eva:arrow-back-outline" />
+                            </IconButton>
+                        </Stack>
+                        <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
+                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
 
-                        ))}
-                    </RHFSelect>
-                </Stack>
-                <Stack gap={1}>
-                    <Typography variant='subtitle1'>User settings and permissions</Typography>
-                    <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
-                        {["ROLES"].map((category, index) => (
-                            <option key={index} value={category}>
-                                {category}
-                            </option>
+                            <RHFUploadAvatar name="image" onDrop={handleDrop}
+                                helperText={
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            mt: 2,
+                                            mx: 'auto',
+                                            display: 'block',
+                                            textAlign: 'center',
+                                            color: 'text.secondary',
+                                        }}
+                                    >
+                                        Allowed *.jpeg, *.jpg, *.png, *.gif
+                                    </Typography>
+                                } />
+                            <Stack sx={{ flexShrink: 1, justifyContent: 'space-between', py: 2 }}>
+                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                    <RHFTextField name="name" label="Name" />
+                                    <RHFTextField name="email" label="Email" />
+                                </Stack>
+                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                    <RHFTextField name="password" label="Password"   />
+                                    <RHFTextField name="cell" label="Cell" />
+                                </Stack>
+                            </Stack>
 
-                        ))}
-                    </RHFSelect>
-                    <Grid container spacing={1}>
-                        <Grid item xs={12} md={5}>
-                            <Typography variant='subtitle1'>Will you receive messages?</Typography>
-                            <RHFToggleGroup
-                                name='mayAccessSite'
-                                options={[
-                                    { value: 'true', label: 'Yes' },
-                                    { value: 'false', label: 'No' },
+                        </Stack>
 
-                                ]}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                            <Typography variant='subtitle1'>Can you make reservations?</Typography>
-                            <RHFToggleGroup
-                                name='releasePermission'
-                                options={[
-                                    { value: 'true', label: 'Yes' },
-                                    { value: 'false', label: 'No' },
-                                ]}
-                            />
-                        </Grid>
-                        <Grid item xs={12} md={3}>
-                            <Typography variant='subtitle1'>Status</Typography>
-                            <RHFToggleGroup
-                                name='status'
-                                options={[
-                                    { value: '1', label: 'Active' },
-                                    { value: '0', label: 'InActive' },
-                                ]}
-                            />
-                        </Grid>
-                    </Grid>
+                        <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
+                            <RHFSelect name="block" label="Block" sx={{ mb: 2 }}>
+                                <option value={0}>Select Block</option>
+                                {blocks.map((block, index) => (
+                                    <option key={block.id} value={block.id}>
+                                        {block.name}
+                                    </option>
 
-                </Stack>
+                                ))}
+                            </RHFSelect>
+                            <RHFSelect name="apart" label="Apartment" sx={{ mb: 2 }}>
+                                {filterBlocks.map((apart, index) => (
+                                    <option key={index} value={apart.id}>
+                                        {apart.name}
+                                    </option>
 
-                <Box>
-                    <LoadingButton variant="contained" type = {'submit'}  loading = {isSubmitting}>
-                        Register
-                    </LoadingButton>
-                </Box>
-            </Stack>
-        </FormProvider >
+                                ))}
+                            </RHFSelect>
+                        </Stack>
+                        <Stack gap={1}>
+                            <Typography variant='subtitle1'>User settings and permissions</Typography>
+                            <RHFTextField name="category" label="Category" />
+                            {/* <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
+                                {["ROLES"].map((category, index) => (
+                                    <option key={index} value={category}>
+                                        {category}
+                                    </option>
+
+                                ))}
+                            </RHFSelect> */}
+                            <Grid container spacing={1}>
+                                <Grid item xs={12} md={5}>
+                                    <Typography variant='subtitle1'>Will you receive messages?</Typography>
+                                    <RHFToggleGroup
+                                        name='mayReceiveMessage'
+                                        options={[
+                                            { value: 'true', label: 'Yes' },
+                                            { value: 'false', label: 'No' },
+
+                                        ]}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={3}>
+                                    <Typography variant='subtitle1'>Can you make reservations?</Typography>
+                                    <RHFToggleGroup
+                                        name='mayReservation'
+                                        options={[
+                                            { value: 'true', label: 'Yes' },
+                                            { value: 'false', label: 'No' },
+                                        ]}
+                                    />
+                                </Grid>
+                                <Grid item xs={12} md={3}>
+                                    <Typography variant='subtitle1'>Status</Typography>
+                                    <RHFToggleGroup
+                                        name='status'
+                                        options={[
+                                            { value: '1', label: 'Active' },
+                                            { value: '0', label: 'InActive' },
+                                        ]}
+                                    />
+                                </Grid>
+                            </Grid>
+
+                        </Stack>
+
+                        <Box>
+                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting}>
+                                {selectedUser !== null ? 'Update' : 'Register'}
+                            </LoadingButton>
+                        </Box>
+                    </Stack>
+                </FormProvider >
+            }
+        </>
+
     );
 }

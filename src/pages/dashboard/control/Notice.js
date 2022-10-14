@@ -19,7 +19,7 @@ export default function Notice() {
     const { themeStretch } = useSettings();
     const [selectedTab, setSelectedTab] = useState(0);
     const handleChange = (evt, value) => {
-        console.log(selectedTab)
+   
         setSelectedTab(value)
     }
     return (

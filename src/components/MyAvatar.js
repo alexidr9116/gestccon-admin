@@ -1,4 +1,5 @@
 // hooks
+import { HOST_API } from '../config';
 import useAuth from '../hooks/useAuth';
 // utils
 import createAvatar from '../utils/createAvatar';
@@ -12,7 +13,7 @@ export default function MyAvatar({ ...other }) {
 
   return (
     <Avatar
-      src={user?.photoURL}
+      src={`${HOST_API}${user?.avatar||'uploads/images/avatar.png'}`}
       alt={user?.displayName}
       color={'default'}
       {...other}
