@@ -171,7 +171,7 @@ export default function Edit() {
         })
     }
     useEffect(()=>{
-        console.log(user)
+
         reset(defaultValues)
     },[user,reset,defaultValues]);
 
@@ -179,7 +179,7 @@ export default function Edit() {
         <>
             {user?.disId === 'super-administrator' &&
                 <Stack padding={2}>
-                    <Autocomplete options={condominiums} renderInput = {(params)=><TextField {...params} label = "Select Your Condo" />}  isOptionEqualToValue={(option,value)=>(option.name === value.name)}     getOptionLabel={(option) => option.name} onChange={handleChangeCondo} />
+                    <Autocomplete options={condominiums} renderInput = {(params)=><TextField {...params} label = "Current Condominium" />}  isOptionEqualToValue={(option,value)=>(option.name === value.name)}  defaultValue={user?.condo}   getOptionLabel={(option) => option.name} onChange={handleChangeCondo} />
                     
                 </Stack>
             }
@@ -259,12 +259,12 @@ export default function Edit() {
 
                     <Box>
                         {user?.condo && user?.condo !== null &&
-                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'}>
+                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'} size = "large">
                                 Update
                             </LoadingButton>
                         }
                         {(user?.disId === 'super-administrator') &&
-                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }}>
+                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }} size = "large">
                                 Add Condominium
                             </LoadingButton>
                         }

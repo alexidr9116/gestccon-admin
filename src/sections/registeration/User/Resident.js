@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, Skeleton } from '@mui/material';
 // routes
 import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
@@ -21,21 +21,18 @@ import { HOST_API } from '../../../config';
 import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 // components
 import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar } from '../../../components/hook-form';
+import ResidentTableRow from './list/ResidentTableRow';
 
 // ----------------------------------------------------------------------
 
-const LabelStyle = styled(Typography)(({ theme }) => ({
-    ...theme.typography.subtitle2,
-    color: theme.palette.text.secondary,
-    marginBottom: theme.spacing(1),
-}));
+
 
 const TABLE_HEAD = [
     { id: 'no', label: 'No', align: 'left' },
     { id: 'name', label: 'Name', align: 'left' },
     { id: 'email', label: 'Email', align: 'left' },
     { id: 'category', label: 'Category', align: 'left' },
-    { id: 'avatar', label: 'Avatar', align: 'left' },
+    { id: 'apart', label: 'Apartment', align: 'left' },
     { id: 'status', label: 'Status', align: 'left' },
     { id: '' },
 ];
@@ -44,15 +41,17 @@ const TABLE_HEAD = [
 export default function Resident() {
     const navigate = useNavigate();
     const [mode, setMode] = useState('view');
+    const [openMenu, setOpenMenuActions] = useState(null);
     const [filter, setFilter] = useState('');
     const { enqueueSnackbar } = useSnackbar();
     const [selectedUser, setSelectedUser] = useState(null);
+    const [loading,setLoading] = useState(true);
 
     const [residents, setResidents] = useState([]);
     const [aparts, setAparts] = useState([]);
     const [blocks, setBlocks] = useState([]);
     const [filterBlocks, setFilterBlocks] = useState([]);
-    const [openMenu, setOpenMenuActions] = useState(null);
+
     const RegisterForm = Yup.object().shape({
         name: Yup.string().required('Name field is required'),
         email: Yup.string().required('Email field is required'),
@@ -63,20 +62,20 @@ export default function Resident() {
         category: Yup.string().required('Category field is required'),
     });
 
-    const defaultValues = useMemo(()=>({
+    const defaultValues = useMemo(() => ({
         name: selectedUser?.name || '',
         email: selectedUser?.email || '',
         password: '',
-        image:`${HOST_API}${selectedUser?.avatar || 'uploads/images/avatar.png'}`,
+        image: `${HOST_API}${selectedUser?.avatar || 'uploads/images/avatar.png'}`,
         cell: selectedUser?.cell || '',
         block: selectedUser?.apartment?.blockId || 0,
         apart: selectedUser?.apartment?.id || 0,
         category: selectedUser?.category || '',
-        mayReceiveMessage: selectedUser?.mayReceiveMessage || 'true',
-        mayReservation: selectedUser?.mayReservation || 'true',
+        mayReceiveMessage: `${selectedUser?.mayReceiveMessage}` || 'true',
+        mayReservation: `${selectedUser?.mayReservation}`|| 'true',
         // observation:selectedUser?.observation || 'true',
-        status: selectedUser?.status||'1',
-    }),[selectedUser]);
+        status: `${selectedUser?.status}` || '1',
+    }), [selectedUser]);
 
     const methods = useForm({
         resolver: yupResolver(RegisterForm),
@@ -97,7 +96,7 @@ export default function Resident() {
     const onSubmit = async (data) => {
         try {
             const iData = new FormData();
-            console.log(selectedUser)
+       
             if (typeof data.image === 'string') {
                 axios.post('/api/admin/user/set-resident-without-image', { ...data, id: (mode === 'edit' ? (selectedUser?.id || 0) : 0) }).then(res => {
                     if (res.status === 200) {
@@ -161,8 +160,12 @@ export default function Resident() {
     }
     const onSelectRow = (user) => {
         setSelectedUser(user);
-
+        setMode('edit')
     }
+    useEffect(() => {
+        if (selectedUser)
+            reset(defaultValues)
+    }, [selectedUser, defaultValues, reset])
     const {
 
         page,
@@ -176,14 +179,7 @@ export default function Resident() {
         onSort,
 
     } = useTable();
-    const handleOpenMenu = (event) => {
 
-        setOpenMenuActions(event.currentTarget);
-    };
-
-    const handleCloseMenu = () => {
-        setOpenMenuActions(null);
-    };
     useEffect(() => {
         const loadBlocks = async () => {
             axios.get('/api/resident/condominium/get-blocks').then(res => {
@@ -209,11 +205,14 @@ export default function Resident() {
             if (response.status === 200 && response.data.data && response.data.data.residents) {
                 setResidents(response.data.data.residents);
             }
+            setLoading(false)
         }
         if (mode === 'view') {
+            setLoading(true)
             loadResidents();
             loadBlocks();
             loadAparts();
+            
         }
 
     }, [mode])
@@ -230,84 +229,51 @@ export default function Resident() {
                         <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); reset(defaultValues); }}>New Resident</Button>
                     </Stack>
                     <Scrollbar>
-                        <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                            <Table >
-                                <TableHeadCustom
-                                    order={order}
-                                    orderBy={orderBy}
-                                    headLabel={TABLE_HEAD}
-                                    rowCount={residents?.length}
-                                    numSelected={selected.length}
-                                    onSort={onSort}
-                                // onSelectAllRows={(checked) =>
-                                //     onSelectAllRows(
-                                //         checked,
-                                //         roles.map((row) => row.id)
-                                //     )
-                                // }
-                                />
+                        {loading &&
+                            <>
+                                {
+                                    [1, 2, 3, 4, 5].map((index) => (
+                                        <Skeleton animation="wave" height={40} key={index} />
+                                    ))
+                                }
 
-                                <TableBody>
-                                    {(residents.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.category?.name?.includes(filter)))).map((user, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                {index + 1}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.name}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.email}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.category}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.avatar &&
-                                                    <Avatar sx={{ width: 40, height: 40 }} src={`${HOST_API}${user?.avatar}`} />
-                                                }
-                                            </TableCell>
-                                            <TableCell>
-                                                <Iconify icon={user?.status === 1 ? 'iconoir:verified-badge' : 'codicon:unverified'} sx={{ height: '24px', width: '24px' }} />
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <TableMoreMenu
-                                                    open={openMenu}
-                                                    onOpen={handleOpenMenu}
-                                                    onClose={handleCloseMenu}
-                                                    actions={
-                                                        <>
-                                                            <MenuItem
-                                                                onClick={() => {
-                                                                    onDeleteRow(user);
-                                                                    handleCloseMenu();
-                                                                }}
-                                                                sx={{ color: 'error.main' }}
-                                                            >
-                                                                <Iconify icon={'eva:trash-2-outline'} />
-                                                                Delete
-                                                            </MenuItem>
-                                                            <MenuItem
-                                                                onClick={() => {
-                                                                    onSelectRow(user);
-                                                                    handleCloseMenu();
-                                                                    setMode('edit')
-                                                                }}
-                                                            >
-                                                                <Iconify icon={'eva:edit-fill'} />
-                                                                Edit
-                                                            </MenuItem>
-                                                        </>
-                                                    }
-                                                />
-                                            </TableCell>
-                                        </TableRow>
+                            </>
 
-                                    ))}
-                                    <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, residents.length)} />
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        }
+                        {!loading &&
+
+                            <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                                <Table >
+                                    <TableHeadCustom
+                                        order={order}
+                                        orderBy={orderBy}
+                                        headLabel={TABLE_HEAD}
+                                        rowCount={residents?.length}
+                                        numSelected={selected.length}
+                                        onSort={onSort}
+                                    // onSelectAllRows={(checked) =>
+                                    //     onSelectAllRows(
+                                    //         checked,
+                                    //         roles.map((row) => row.id)
+                                    //     )
+                                    // }
+                                    />
+
+                                    <TableBody>
+                                        {(residents.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.category?.name?.includes(filter)))).map((user, index) => (
+                                            <ResidentTableRow 
+                                                index = {index}
+                                                key = {index}
+                                                row = {user}
+                                                onEditRow = {()=>onSelectRow(user)}
+                                                onDeleteRow = {()=>onDeleteRow(user)}
+                                            />
+                                        ))}
+                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, residents.length)} />
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        }
                     </Scrollbar>
                 </>
             }
@@ -345,7 +311,7 @@ export default function Resident() {
                                     <RHFTextField name="email" label="Email" />
                                 </Stack>
                                 <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                                    <RHFTextField name="password" label="Password"   />
+                                    <RHFTextField name="password" label="Password" />
                                     <RHFTextField name="cell" label="Cell" />
                                 </Stack>
                             </Stack>
@@ -371,7 +337,7 @@ export default function Resident() {
                                 ))}
                             </RHFSelect>
                         </Stack>
-                        <Stack gap={1}>
+                        <Stack gap={2}>
                             <Typography variant='subtitle1'>User settings and permissions</Typography>
                             <RHFTextField name="category" label="Category" />
                             {/* <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
@@ -394,7 +360,7 @@ export default function Resident() {
                                         ]}
                                     />
                                 </Grid>
-                                <Grid item xs={12} md={3}>
+                                <Grid item xs={12} md={4}>
                                     <Typography variant='subtitle1'>Can you make reservations?</Typography>
                                     <RHFToggleGroup
                                         name='mayReservation'
@@ -419,7 +385,7 @@ export default function Resident() {
                         </Stack>
 
                         <Box>
-                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting}>
+                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size = "large">
                                 {selectedUser !== null ? 'Update' : 'Register'}
                             </LoadingButton>
                         </Box>

@@ -14,7 +14,7 @@ TableMoreMenu.propTypes = {
   onOpen: PropTypes.func,
 };
 
-export default function TableMoreMenu({ actions, open, onClose, onOpen }) {
+export default function TableMoreMenu({ actions, open, onClose, onOpen, onSelectRow}) {
   return (
     <>
       <IconButton onClick={onOpen}>

@@ -8,7 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 // @mui
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, Skeleton } from '@mui/material';
 import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
@@ -39,6 +39,7 @@ export default function Register() {
     const navigate = useNavigate();
     const [roles, setRoles] = useState([]);
     const [openMenu, setOpenMenuActions] = useState(null);
+    const [loading,setLoading] = useState(true);
     const [selectedRole, setSelectedRole] = useState(null);
     const handleOpenMenu = (event) => {
         setOpenMenuActions(event.currentTarget);
@@ -125,7 +126,7 @@ export default function Register() {
         }
     }
     const load = async () => {
-
+        setLoading(true)
         try {
             const response = await axios.get('/api/admin/role/get-roles', {});
 
@@ -136,6 +137,7 @@ export default function Register() {
         catch (err) {
             console.log(err)
         }
+        setLoading(false)
     }
     useEffect(() => {
         load();
@@ -162,6 +164,19 @@ export default function Register() {
                 <Stack spacing={3}>
                     <Typography variant='subtitle1'>Registered Roles</Typography>
                     <Scrollbar>
+                    {loading &&
+                            <>
+                                {
+                                    [1, 2, 3, 4, 5].map((index) => (
+                                        <Skeleton animation="wave" height={40} key ={index}/>
+                                    ))
+                                }
+
+                            </>
+
+                        }
+                        {!loading &&
+
                         <TableContainer sx={{ maxWidth: 800, position: 'relative' }}>
                             <Table >
                                 <TableHeadCustom
@@ -231,6 +246,7 @@ export default function Register() {
                                 </TableBody>
                             </Table>
                         </TableContainer>
+}
                     </Scrollbar>
 
                 </Stack>

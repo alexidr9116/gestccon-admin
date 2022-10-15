@@ -8,7 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 // @mui
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, Skeleton } from '@mui/material';
 import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 
 import Scrollbar from '../../../components/Scrollbar';
@@ -43,7 +43,7 @@ export default function Block() {
     const [blocks, setBlocks] = useState([]);
     const [aparts, setAparts] = useState([]);
     const [isApart, setIsApart] = useState(true);
-
+    const [loading, setLoading] = useState(true);
     const handleOpenMenu = (event) => {
 
         setOpenMenuActions(event.currentTarget);
@@ -114,9 +114,7 @@ export default function Block() {
 
     }
     useEffect(() => {
-        console.log(selectedApart)
         reset(defaultValues);
-
     }, [selectedApart, reset, defaultValues])
     const [blockId, setBlockId] = useState(null);
 
@@ -134,7 +132,7 @@ export default function Block() {
             const response = await axios.delete(`/api/admin/condominium/delete-apart/${apart.id}`, {});
             if (response.status === 200) {
                 enqueueSnackbar(response.data?.message);
-              
+
             }
             load();
             reset();
@@ -143,6 +141,7 @@ export default function Block() {
         }
     }
     const load = () => {
+        setLoading(true)
         axios.get('/api/resident/condominium/get-blocks').then(res => {
             if (res.status === 200) {
                 setBlocks(res.data.data.blocks);
@@ -156,7 +155,7 @@ export default function Block() {
             }
         }).catch(err => {
 
-        })
+        }).finally(() => setLoading(false))
     }
     useEffect(() => {
         load();
@@ -177,7 +176,7 @@ export default function Block() {
                         <RHFTextField name="apartName" label="Apartment name" disabled={blockId === null} />
                     </Stack>
                     <Box >
-                        <Button variant='outlined' size="large" onClick={() => {setSelectedApart(null); }} sx={{ mr: 1 }}>
+                        <Button variant='outlined' size="large" onClick={() => { setSelectedApart(null); }} sx={{ mr: 1 }}>
                             Reset
                         </Button>
                         <LoadingButton variant="contained" disabled={blockId === null} size="large" loading={isSubmitting} type="submit" onClick={() => setIsApart(true)}>
@@ -188,73 +187,86 @@ export default function Block() {
                 <Stack spacing={3}>
                     <Typography variant='subtitle1'>Registered Block & Apartments</Typography>
                     <Scrollbar>
-                        <TableContainer sx={{ maxWidth: 800, position: 'relative' }}>
-                            <Table >
-                                <TableHeadCustom
+                        {loading &&
+                            <>
+                                {
+                                    [1, 2, 3, 4, 5].map((index) => (
+                                        <Skeleton animation="wave" height={40} key={index} />
+                                    ))
+                                }
 
-                                    order={order}
-                                    orderBy={orderBy}
-                                    headLabel={TABLE_HEAD}
-                                    rowCount={roles?.length}
-                                    numSelected={selected.length}
-                                    onSort={onSort}
-                                // onSelectAllRows={(checked) =>
-                                //     onSelectAllRows(
-                                //         checked,
-                                //         roles.map((row) => row.id)
-                                //     )
-                                // }
-                                />
+                            </>
 
-                                <TableBody>
-                                    {(aparts).map((apart, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                {index + 1}
-                                            </TableCell>
-                                            <TableCell>
-                                                {apart?.block?.name}
-                                            </TableCell>
-                                            <TableCell>
-                                                {apart?.name}
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <TableMoreMenu
-                                                    open={openMenu}
-                                                    onOpen={handleOpenMenu}
-                                                    onClose={handleCloseMenu}
-                                                    actions={
-                                                        <>
-                                                            <MenuItem
-                                                                onClick={() => {
-                                                                    onDeleteRow(apart);
-                                                                    handleCloseMenu();
-                                                                }}
-                                                                sx={{ color: 'error.main' }}
-                                                            >
-                                                                <Iconify icon={'eva:trash-2-outline'} />
-                                                                Delete
-                                                            </MenuItem>
-                                                            <MenuItem
-                                                                onClick={() => {
-                                                                    onEditRow(apart);
-                                                                    handleCloseMenu();
-                                                                }}
-                                                            >
-                                                                <Iconify icon={'eva:edit-fill'} />
-                                                                Edit
-                                                            </MenuItem>
-                                                        </>
-                                                    }
-                                                />
-                                            </TableCell>
-                                        </TableRow>
+                        }
+                        {!loading &&
+                            <TableContainer sx={{ maxWidth: 800, position: 'relative' }}>
+                                <Table >
+                                    <TableHeadCustom
 
-                                    ))}
-                                    <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, roles.length)} />
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                                        order={order}
+                                        orderBy={orderBy}
+                                        headLabel={TABLE_HEAD}
+                                        rowCount={roles?.length}
+                                        numSelected={selected.length}
+                                        onSort={onSort}
+                                    // onSelectAllRows={(checked) =>
+                                    //     onSelectAllRows(
+                                    //         checked,
+                                    //         roles.map((row) => row.id)
+                                    //     )
+                                    // }
+                                    />
+
+                                    <TableBody>
+                                        {(aparts).map((apart, index) => (
+                                            <TableRow key={index}>
+                                                <TableCell>
+                                                    {index + 1}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {apart?.block?.name}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {apart?.name}
+                                                </TableCell>
+                                                <TableCell align="right">
+                                                    <TableMoreMenu
+                                                        open={openMenu}
+                                                        onOpen={handleOpenMenu}
+                                                        onClose={handleCloseMenu}
+                                                        actions={
+                                                            <>
+                                                                <MenuItem
+                                                                    onClick={() => {
+                                                                        onDeleteRow(apart);
+                                                                        handleCloseMenu();
+                                                                    }}
+                                                                    sx={{ color: 'error.main' }}
+                                                                >
+                                                                    <Iconify icon={'eva:trash-2-outline'} />
+                                                                    Delete
+                                                                </MenuItem>
+                                                                <MenuItem
+                                                                    onClick={() => {
+                                                                        onEditRow(apart);
+                                                                        handleCloseMenu();
+                                                                    }}
+                                                                >
+                                                                    <Iconify icon={'eva:edit-fill'} />
+                                                                    Edit
+                                                                </MenuItem>
+                                                            </>
+                                                        }
+                                                    />
+                                                </TableCell>
+                                            </TableRow>
+
+                                        ))}
+                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, roles.length)} />
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        }
                     </Scrollbar>
                 </Stack>
             </FormProvider>

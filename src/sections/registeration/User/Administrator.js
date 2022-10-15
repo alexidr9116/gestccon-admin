@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, Skeleton } from '@mui/material';
 // routes
 import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
@@ -19,6 +19,7 @@ import { TableEmptyRows, TableHeadCustom, TableMoreMenu, TableNoData, TableSelec
 // components
 import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar } from '../../../components/hook-form';
 import { HOST_API } from '../../../config';
+import AdminTableRow from './list/AdminTableRow';
 
 // ----------------------------------------------------------------------
 
@@ -32,7 +33,6 @@ const TABLE_HEAD = [
     { id: 'name', label: 'Name', align: 'left' },
     { id: 'email', label: 'Email', align: 'left' },
     { id: 'role', label: 'Role', align: 'left' },
-    { id: 'avatar', label: 'Avatar', align: 'left' },
     { id: 'status', label: 'Status', align: 'left' },
     { id: '' },
 ];
@@ -41,6 +41,8 @@ const TABLE_HEAD = [
 export default function Administrator() {
     const navigate = useNavigate();
     const [mode, setMode] = useState('view');
+    const [loading, setLoading] = useState(true);
+
     const [filter, setFilter] = useState('');
     const { enqueueSnackbar } = useSnackbar();
     const [selectedUser, setSelectedUser] = useState(null);
@@ -97,7 +99,7 @@ export default function Administrator() {
     const values = watch();
 
     const onSubmit = async (data) => {
-        
+
         try {
             const iData = new FormData();
 
@@ -140,14 +142,7 @@ export default function Administrator() {
             console.error(error);
         }
     };
-    const handleOpenMenu = (event) => {
 
-        setOpenMenuActions(event.currentTarget);
-    };
-
-    const handleCloseMenu = () => {
-        setOpenMenuActions(null);
-    };
     const handleDrop = useCallback(
         (acceptedFiles) => {
             const file = acceptedFiles[0];
@@ -177,8 +172,10 @@ export default function Administrator() {
             if (response.status === 200 && response.data.data && response.data.data.administrators) {
                 setAdministrators(response.data.data.administrators);
             }
+            setLoading(false)
         }
         if (mode === 'view') {
+            setLoading(true)
             loadRole();
             loadAdmins();
         }
@@ -187,9 +184,9 @@ export default function Administrator() {
     const onDeleteRow = (user) => {
 
     }
-    const onSelectRow = (user) => {
+    const onEditRow = (user) => {
         setSelectedUser(user);
-
+        setMode('edit')
     }
     useEffect(() => {
         if (selectedUser)
@@ -204,86 +201,51 @@ export default function Administrator() {
                         <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); reset(defaultValues); }}>New Account</Button>
                     </Stack>
                     <Scrollbar>
-                        <TableContainer  sx={{ width: '100%', minWidth:'400px', position: 'relative' }}>
-                            <Table >
-                                <TableHeadCustom
+                        {loading &&
+                            <>
+                                {
+                                    [1, 2, 3, 4, 5].map((index) => (
+                                        <Skeleton animation="wave" height={40} key={index} />
+                                    ))
+                                }
 
-                                    order={order}
-                                    orderBy={orderBy}
-                                    headLabel={TABLE_HEAD}
-                                    rowCount={administrators?.length}
-                                    numSelected={selected.length}
-                                    onSort={onSort}
-                                // onSelectAllRows={(checked) =>
-                                //     onSelectAllRows(
-                                //         checked,
-                                //         roles.map((row) => row.id)
-                                //     )
-                                // }
-                                />
+                            </>
 
-                                <TableBody>
-                                    {(administrators.filter((user)=>(user.name.includes(filter) || user.email.includes(filter) || user.role?.name?.includes(filter)))).map((user, index) => (
-                                        <TableRow key={index}>
-                                            <TableCell>
-                                                {index + 1}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.name}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.email}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.role?.name}
-                                            </TableCell>
-                                            <TableCell>
-                                                {user?.avatar &&
-                                                    <Avatar sx={{width:40,height:40}} src={`${HOST_API}${user?.avatar}`} />
-                                                }
-                                            </TableCell>
-                                            <TableCell>
-                                                <Iconify icon ={user?.status === 1?'iconoir:verified-badge':'codicon:unverified'} sx={{height:'24px', width:'24px'}} />
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <TableMoreMenu
-                                                    open={openMenu}
-                                                    onOpen={handleOpenMenu}
-                                                    onClose={handleCloseMenu}
-                                                    actions={
-                                                        <>
-                                                            <MenuItem
-                                                                onClick={() => {
-                                                                    onDeleteRow(user);
-                                                                    handleCloseMenu();
-                                                                }}
-                                                                sx={{ color: 'error.main' }}
-                                                            >
-                                                                <Iconify icon={'eva:trash-2-outline'} />
-                                                                Delete
-                                                            </MenuItem>
-                                                            <MenuItem
-                                                                onClick={() => {
-                                                                    onSelectRow(user);
-                                                                    handleCloseMenu();
-                                                                    setMode('edit')
-                                                                }}
-                                                            >
-                                                                <Iconify icon={'eva:edit-fill'} />
-                                                                Edit
-                                                            </MenuItem>
-                                                        </>
-                                                    }
-                                                />
-                                            </TableCell>
-                                            
-                                        </TableRow>
+                        }
+                        {!loading &&
 
-                                    ))}
-                                    <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, administrators.length)} />
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                            <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                                <Table >
+                                    <TableHeadCustom
+
+                                        order={order}
+                                        orderBy={orderBy}
+                                        headLabel={TABLE_HEAD}
+                                        rowCount={administrators?.length}
+                                        numSelected={selected.length}
+                                        onSort={onSort}
+                                    // onSelectAllRows={(checked) =>
+                                    //     onSelectAllRows(
+                                    //         checked,
+                                    //         roles.map((row) => row.id)
+                                    //     )
+                                    // }
+                                    />
+
+                                    <TableBody>
+                                        {(administrators.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.role?.name?.includes(filter)))).map((row, index) => (
+                                            <AdminTableRow key={index}
+                                                index = {index}
+                                                row = {row}
+                                                onDeleteRow={() => onDeleteRow(row)}
+                                                onEditRow={() => onEditRow(row)}
+                                            />
+                                        ))}
+                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, administrators.length)} />
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        }
                     </Scrollbar>
                 </>
             }
@@ -378,7 +340,7 @@ export default function Administrator() {
                         </Stack>
 
                         <Box>
-                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting}>
+                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size="large">
                                 {selectedUser !== null ? 'Update' : 'Register'}
                             </LoadingButton>
                         </Box>
