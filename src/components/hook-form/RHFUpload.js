@@ -4,7 +4,7 @@ import { useFormContext, Controller } from 'react-hook-form';
 // @mui
 import { FormHelperText } from '@mui/material';
 // type
-import { UploadAvatar, UploadMultiFile, UploadSingleFile } from '../upload';
+import { UploadAvatar, UploadLogo, UploadMultiFile, UploadSingleFile } from '../upload';
 
 // ----------------------------------------------------------------------
 
@@ -37,6 +37,33 @@ export function RHFUploadAvatar({ name, ...other }) {
   );
 }
 
+RHFUploadLogo.propTypes = {
+  name: PropTypes.string,
+};
+export function RHFUploadLogo({ name, ...other }) {
+  const { control } = useFormContext();
+
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState: { error } }) => {
+        const checkError = !!error && !field.value;
+
+        return (
+          <div>
+            <UploadLogo accept={{ 'image/*': [] }} error={checkError} {...other} file={field.value} />
+            {checkError && (
+              <FormHelperText error sx={{ px: 2, textAlign: 'center' }}>
+                {error.message}
+              </FormHelperText>
+            )}
+          </div>
+        );
+      }}
+    />
+  );
+}
 // ----------------------------------------------------------------------
 
 RHFUploadSingleFile.propTypes = {

@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, Skeleton } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, Skeleton, CardHeader, CardContent } from '@mui/material';
 // routes
 import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
@@ -196,148 +196,160 @@ export default function Administrator() {
         <>
             {mode === 'view' &&
                 <>
-                    <Stack marginBottom={2} paddingX={1} direction={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} spacing={1} gap={1}>
-                        <TextField label="Keywords" onChange={(e) => setFilter(e.target.value)} value={filter} />
-                        <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); reset(defaultValues); }}>New Account</Button>
-                    </Stack>
-                    <Scrollbar>
-                        {loading &&
-                            <>
-                                {
-                                    [1, 2, 3, 4, 5].map((index) => (
-                                        <Skeleton animation="wave" height={40} key={index} />
-                                    ))
+                    <Card>
+                        <CardContent>
+                            <Stack marginBottom={2} paddingX={1} direction={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} spacing={1} gap={1}>
+                                <TextField label="Keywords" onChange={(e) => setFilter(e.target.value)} value={filter} />
+                                <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); reset(defaultValues); }}>New Account</Button>
+                            </Stack>
+                            <Scrollbar>
+                                {loading &&
+                                    <>
+                                        {
+                                            [1, 2, 3, 4, 5].map((index) => (
+                                                <Skeleton animation="wave" height={40} key={index} />
+                                            ))
+                                        }
+
+                                    </>
+
                                 }
+                                {!loading &&
 
-                            </>
+                                    <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                                        <Table >
+                                            <TableHeadCustom
 
-                        }
-                        {!loading &&
-
-                            <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                                <Table >
-                                    <TableHeadCustom
-
-                                        order={order}
-                                        orderBy={orderBy}
-                                        headLabel={TABLE_HEAD}
-                                        rowCount={administrators?.length}
-                                        numSelected={selected.length}
-                                        onSort={onSort}
-                                    // onSelectAllRows={(checked) =>
-                                    //     onSelectAllRows(
-                                    //         checked,
-                                    //         roles.map((row) => row.id)
-                                    //     )
-                                    // }
-                                    />
-
-                                    <TableBody>
-                                        {(administrators.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.role?.name?.includes(filter)))).map((row, index) => (
-                                            <AdminTableRow key={index}
-                                                index = {index}
-                                                row = {row}
-                                                onDeleteRow={() => onDeleteRow(row)}
-                                                onEditRow={() => onEditRow(row)}
+                                                order={order}
+                                                orderBy={orderBy}
+                                                headLabel={TABLE_HEAD}
+                                                rowCount={administrators?.length}
+                                                numSelected={selected.length}
+                                                onSort={onSort}
+                                            // onSelectAllRows={(checked) =>
+                                            //     onSelectAllRows(
+                                            //         checked,
+                                            //         roles.map((row) => row.id)
+                                            //     )
+                                            // }
                                             />
-                                        ))}
-                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, administrators.length)} />
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        }
-                    </Scrollbar>
+
+                                            <TableBody>
+                                                {(administrators.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.role?.name?.includes(filter)))).map((row, index) => (
+                                                    <AdminTableRow key={index}
+                                                        index={index}
+                                                        row={row}
+                                                        onDeleteRow={() => onDeleteRow(row)}
+                                                        onEditRow={() => onEditRow(row)}
+                                                    />
+                                                ))}
+                                                <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, administrators.length)} />
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                }
+                            </Scrollbar>
+                        </CardContent>
+                    </Card>
+
                 </>
             }
             {mode !== 'view' &&
                 <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                     <Stack spacing={3} paddingTop={1}>
-                        <Stack direction={'row'} gap={1} justifyContent="space-between" >
+                        <Card>
+                            <CardContent>
+                                <Stack direction={'row'} gap={1} justifyContent="space-between" >
 
-                            <Typography variant='subtitle1'>Administrator information</Typography>
-                            <IconButton onClick={() => setMode('view')}>
-                                <Iconify icon="eva:arrow-back-outline" />
-                            </IconButton>
-                        </Stack>
-
-                        <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
-                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
-
-                            <RHFUploadAvatar name="image" onDrop={handleDrop}
-                                helperText={
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            mt: 2,
-                                            mx: 'auto',
-                                            display: 'block',
-                                            textAlign: 'center',
-                                            color: 'text.secondary',
-                                        }}
-                                    >
-                                        Allowed *.jpeg, *.jpg, *.png, *.gif
-                                    </Typography>
-                                } />
-                            <Stack sx={{ flexShrink: 1, justifyContent: 'space-between', py: 2 }}>
-                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                                    <RHFTextField name="name" label="Name" />
-                                    <RHFTextField name="email" label="Email" />
+                                    <Typography variant='subtitle1'>Administrator information</Typography>
+                                    <IconButton onClick={() => setMode('view')}>
+                                        <Iconify icon="eva:arrow-back-outline" />
+                                    </IconButton>
                                 </Stack>
-                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                                    <RHFTextField name="password" label="Password" />
-                                    <RHFTextField name="cell" label="Cell" />
+                                <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
+                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
+
+                                    <RHFUploadAvatar name="image" onDrop={handleDrop}
+                                        helperText={
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    mt: 2,
+                                                    mx: 'auto',
+                                                    display: 'block',
+                                                    textAlign: 'center',
+                                                    color: 'text.secondary',
+                                                }}
+                                            >
+                                                Allowed *.jpeg, *.jpg, *.png, *.gif
+                                            </Typography>
+                                        } />
+                                    <Stack sx={{ flexShrink: 1, justifyContent: 'space-between', py: 2 }}>
+                                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                            <RHFTextField name="name" label="Name" />
+                                            <RHFTextField name="email" label="Email" />
+                                        </Stack>
+                                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                            <RHFTextField name="password" label="Password" />
+                                            <RHFTextField name="cell" label="Cell" />
+                                        </Stack>
+                                    </Stack>
+
                                 </Stack>
-                            </Stack>
 
-                        </Stack>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent>
+                                <Stack gap={1}>
+                                    <Typography variant='subtitle1'>User settings and permissions</Typography>
+                                    <RHFSelect name="roleId" label="Profile" sx={{ mb: 2 }}>
 
+                                        {roles.map((role, index) => (
+                                            <option key={role?.id} value={role.id}>
+                                                {role.name}
+                                            </option>
 
-                        <Stack gap={1}>
-                            <Typography variant='subtitle1'>User settings and permissions</Typography>
-                            <RHFSelect name="roleId" label="Profile" sx={{ mb: 2 }}>
+                                        ))}
+                                    </RHFSelect>
+                                    <Grid container spacing={1}>
+                                        <Grid item xs={12} md={5}>
+                                            <Typography variant='subtitle1'>May access web?</Typography>
+                                            <RHFToggleGroup
+                                                name='mayAccessSite'
+                                                options={[
+                                                    { value: 'true', label: 'Yes' },
+                                                    { value: 'false', label: 'No' },
 
-                                {roles.map((role, index) => (
-                                    <option key={role?.id} value={role.id}>
-                                        {role.name}
-                                    </option>
+                                                ]}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={3}>
+                                            <Typography variant='subtitle1'>Release Permission</Typography>
+                                            <RHFToggleGroup
+                                                name='releasePermission'
+                                                options={[
+                                                    { value: 'true', label: 'Yes' },
+                                                    { value: 'false', label: 'No' },
+                                                ]}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={3}>
+                                            <Typography variant='subtitle1'>Status</Typography>
+                                            <RHFToggleGroup
+                                                name='status'
+                                                options={[
+                                                    { value: '1', label: 'Active' },
+                                                    { value: '0', label: 'Inactive' },
+                                                ]}
+                                            />
+                                        </Grid>
+                                    </Grid>
 
-                                ))}
-                            </RHFSelect>
-                            <Grid container spacing={1}>
-                                <Grid item xs={12} md={5}>
-                                    <Typography variant='subtitle1'>May access web?</Typography>
-                                    <RHFToggleGroup
-                                        name='mayAccessSite'
-                                        options={[
-                                            { value: 'true', label: 'Yes' },
-                                            { value: 'false', label: 'No' },
+                                </Stack>
+                            </CardContent>
+                        </Card>
 
-                                        ]}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={3}>
-                                    <Typography variant='subtitle1'>Release Permission</Typography>
-                                    <RHFToggleGroup
-                                        name='releasePermission'
-                                        options={[
-                                            { value: 'true', label: 'Yes' },
-                                            { value: 'false', label: 'No' },
-                                        ]}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={3}>
-                                    <Typography variant='subtitle1'>Status</Typography>
-                                    <RHFToggleGroup
-                                        name='status'
-                                        options={[
-                                            { value: '1', label: 'Active' },
-                                            { value: '0', label: 'Inactive' },
-                                        ]}
-                                    />
-                                </Grid>
-                            </Grid>
-
-                        </Stack>
 
                         <Box>
                             <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size="large">

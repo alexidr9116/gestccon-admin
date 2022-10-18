@@ -8,7 +8,7 @@ import { useForm, Controller } from 'react-hook-form';
 // @mui
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, Skeleton } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, Skeleton, CardHeader, CardContent } from '@mui/material';
 import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 
 import Scrollbar from '../../../components/Scrollbar';
@@ -164,110 +164,120 @@ export default function Block() {
         <>
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3} paddingTop={1} marginBottom={4}>
-                    <Typography variant='subtitle1'>Registeration Information</Typography>
-                    <Typography variant='subtitle2'>Here you will define the information about the registration.</Typography>
-                    <Stack gap={2}>
-                        <Stack direction={'row'} gap={1}>
-                            <RHFTextField name="blockName" label="Block name" />
-                            <Button variant='contained' type='submit' onClick={() => setIsApart(false)}>Save</Button>
-                            <Button variant='outlined' onClick={() => setIsApart(false)} disabled={blockId === null}>Delete</Button>
-                        </Stack>
+                    <Card>
+                        <CardHeader title="Registeration Information"
+                            subheader="Here you will define the information about the registration." />
+                        <CardContent>
+                            <Stack gap={2}>
+                                <Stack direction={'row'} gap={1}>
+                                    <RHFTextField name="blockName" label="Block name" />
+                                    <Button variant='contained' type='submit' onClick={() => setIsApart(false)}>Save</Button>
+                                    <Button variant='outlined' onClick={() => setIsApart(false)} disabled={blockId === null}>Delete</Button>
+                                </Stack>
 
-                        <RHFTextField name="apartName" label="Apartment name" disabled={blockId === null} />
-                    </Stack>
-                    <Box >
-                        <Button variant='outlined' size="large" onClick={() => { setSelectedApart(null); }} sx={{ mr: 1 }}>
-                            Reset
-                        </Button>
-                        <LoadingButton variant="contained" disabled={blockId === null} size="large" loading={isSubmitting} type="submit" onClick={() => setIsApart(true)}>
-                            {(selectedApart === null ? 'Register' : 'Update')}
-                        </LoadingButton>
-                    </Box>
+                                <RHFTextField name="apartName" label="Apartment name" disabled={blockId === null} />
+                            </Stack>
+                            <Box sx={{ mt: 2 }}>
+                                <Button variant='outlined' size="large" onClick={() => { setSelectedApart(null); }} sx={{ mr: 1 }}>
+                                    Reset
+                                </Button>
+                                <LoadingButton variant="contained" disabled={blockId === null} size="large" loading={isSubmitting} type="submit" onClick={() => setIsApart(true)}>
+                                    {(selectedApart === null ? 'Register' : 'Update')}
+                                </LoadingButton>
+                            </Box>
+                        </CardContent>
+                    </Card>
+
+
                 </Stack>
                 <Stack spacing={3}>
-                    <Typography variant='subtitle1'>Registered Block & Apartments</Typography>
-                    <Scrollbar>
-                        {loading &&
-                            <>
-                                {
-                                    [1, 2, 3, 4, 5].map((index) => (
-                                        <Skeleton animation="wave" height={40} key={index} />
-                                    ))
+                    <Card>
+                        <CardHeader title="Registered Block & Apartments" />
+                        <CardContent>
+                            <Scrollbar>
+                                {loading &&
+                                    <>
+                                        {
+                                            [1, 2, 3, 4, 5].map((index) => (
+                                                <Skeleton animation="wave" height={40} key={index} />
+                                            ))
+                                        }
+
+                                    </>
+
                                 }
+                                {!loading &&
+                                    <TableContainer sx={{ maxWidth: 800, position: 'relative' }}>
+                                        <Table >
+                                            <TableHeadCustom
 
-                            </>
+                                                order={order}
+                                                orderBy={orderBy}
+                                                headLabel={TABLE_HEAD}
+                                                rowCount={roles?.length}
+                                                numSelected={selected.length}
+                                                onSort={onSort}
+                                            // onSelectAllRows={(checked) =>
+                                            //     onSelectAllRows(
+                                            //         checked,
+                                            //         roles.map((row) => row.id)
+                                            //     )
+                                            // }
+                                            />
 
-                        }
-                        {!loading &&
-                            <TableContainer sx={{ maxWidth: 800, position: 'relative' }}>
-                                <Table >
-                                    <TableHeadCustom
+                                            <TableBody>
+                                                {(aparts).map((apart, index) => (
+                                                    <TableRow key={index}>
+                                                        <TableCell>
+                                                            {index + 1}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {apart?.block?.name}
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {apart?.name}
+                                                        </TableCell>
+                                                        <TableCell align="right">
+                                                            <TableMoreMenu
+                                                                open={openMenu}
+                                                                onOpen={handleOpenMenu}
+                                                                onClose={handleCloseMenu}
+                                                                actions={
+                                                                    <>
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                onDeleteRow(apart);
+                                                                                handleCloseMenu();
+                                                                            }}
+                                                                            sx={{ color: 'error.main' }}
+                                                                        >
+                                                                            <Iconify icon={'eva:trash-2-outline'} />
+                                                                            Delete
+                                                                        </MenuItem>
+                                                                        <MenuItem
+                                                                            onClick={() => {
+                                                                                onEditRow(apart);
+                                                                                handleCloseMenu();
+                                                                            }}
+                                                                        >
+                                                                            <Iconify icon={'eva:edit-fill'} />
+                                                                            Edit
+                                                                        </MenuItem>
+                                                                    </>
+                                                                }
+                                                            />
+                                                        </TableCell>
+                                                    </TableRow>
 
-                                        order={order}
-                                        orderBy={orderBy}
-                                        headLabel={TABLE_HEAD}
-                                        rowCount={roles?.length}
-                                        numSelected={selected.length}
-                                        onSort={onSort}
-                                    // onSelectAllRows={(checked) =>
-                                    //     onSelectAllRows(
-                                    //         checked,
-                                    //         roles.map((row) => row.id)
-                                    //     )
-                                    // }
-                                    />
-
-                                    <TableBody>
-                                        {(aparts).map((apart, index) => (
-                                            <TableRow key={index}>
-                                                <TableCell>
-                                                    {index + 1}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {apart?.block?.name}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {apart?.name}
-                                                </TableCell>
-                                                <TableCell align="right">
-                                                    <TableMoreMenu
-                                                        open={openMenu}
-                                                        onOpen={handleOpenMenu}
-                                                        onClose={handleCloseMenu}
-                                                        actions={
-                                                            <>
-                                                                <MenuItem
-                                                                    onClick={() => {
-                                                                        onDeleteRow(apart);
-                                                                        handleCloseMenu();
-                                                                    }}
-                                                                    sx={{ color: 'error.main' }}
-                                                                >
-                                                                    <Iconify icon={'eva:trash-2-outline'} />
-                                                                    Delete
-                                                                </MenuItem>
-                                                                <MenuItem
-                                                                    onClick={() => {
-                                                                        onEditRow(apart);
-                                                                        handleCloseMenu();
-                                                                    }}
-                                                                >
-                                                                    <Iconify icon={'eva:edit-fill'} />
-                                                                    Edit
-                                                                </MenuItem>
-                                                            </>
-                                                        }
-                                                    />
-                                                </TableCell>
-                                            </TableRow>
-
-                                        ))}
-                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, roles.length)} />
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        }
-                    </Scrollbar>
+                                                ))}
+                                                <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, roles.length)} />
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                }
+                            </Scrollbar>
+                        </CardContent>
+                    </Card>
                 </Stack>
             </FormProvider>
         </>

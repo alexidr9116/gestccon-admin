@@ -9,11 +9,11 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, InputAdornment, Select } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, InputAdornment, Select, CardContent, CardHeader } from '@mui/material';
 // routes
 
 // components
-import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect } from '../../../components/hook-form';
+import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadLogo } from '../../../components/hook-form';
 import useAuth from '../../../hooks/useAuth';
 import axios from '../../../utils/axios';
 import { HOST_API } from '../../../config';
@@ -51,10 +51,11 @@ export default function Edit() {
         streetType: Yup.string().required('Street type field is required'),
         city: Yup.string().required('City field is required'),
         state: Yup.string().required('State field is required'),
-        reservationEmailType: Yup.string().required('Email Reservation field is required'),
+        // reservationEmailType: Yup.string().required('Email Reservation field is required'),
     });
 
     const defaultValues = useMemo(() => ({
+        logo: user.condo?.logo && `${HOST_API}${user?.condo?.logo}` || '',
         name: user.condo?.name || '',
         siteAddress: user.condo?.siteAddress || '',
         email: user.condo?.email || '',
@@ -67,10 +68,10 @@ export default function Edit() {
         city: user.condo?.city || '',
         zip: user.condo?.zip || '',
         state: user.condo?.state || '',
-        reservationEmailType: user.condo?.reservationEmailType || 'both',
-        guestList: user.condo?.guestList || '0',
-        cardPosition: user.condo?.cardPosition || '0',
-        validateBirth: `${user.condo?.validateBirth}` || 'true',
+        // reservationEmailType: user.condo?.reservationEmailType || 'both',
+        // guestList: user.condo?.guestList || '0',
+        // cardPosition: user.condo?.cardPosition || '0',
+        // validateBirth: `${user.condo?.validateBirth}` || 'true',
     }), [user?.condo]);
 
     const methods = useForm({
@@ -88,6 +89,21 @@ export default function Edit() {
     } = methods;
 
     const values = watch();
+    const handleDropLogo = useCallback(
+        (acceptedFiles) => {
+            const file = acceptedFiles[0];
+
+            if (file) {
+                setValue(
+                    'logo',
+                    Object.assign(file, {
+                        preview: URL.createObjectURL(file),
+                    })
+                );
+            }
+        },
+        [setValue]
+    );
     const handleDrop = useCallback(
         (acceptedFiles) => {
             const file = acceptedFiles[0];
@@ -113,16 +129,61 @@ export default function Edit() {
         }
 
     }, [])
+    const uploadLogo = async (data, id) => {
+        try {
+            console.log(data)
+            if (typeof data.logo === 'string' && id>0) {
+                axios.post('/api/admin/condominium/set-condo-logo-without-image', {logo:data.logo, id}).then(res=>{
+                    if(res.status === 200){
+                        enqueueSnackbar(res.data?.message);
+                        initialize();
+                        reset(defaultValues)
+                        
+                    }
+                    else{
+                        enqueueSnackbar(res.data?.message,{variant:'error'});
+                    }
+                }).catch(err=>{
+
+                }).finally(()=>{
+
+                })
+            }
+            if (typeof data.logo === 'object' && id > 0) {
+                const iData = new FormData();
+                iData.append('logo', data.logo);
+                iData.append('id',id);
+
+                axios.post('/api/admin/condominium/set-condo-logo-with-image', iData).then(res=>{
+                    if(res.status === 200){
+                        enqueueSnackbar(res.data?.message);
+                        initialize();
+                        reset(defaultValues)
+                       
+                    }
+                    else{
+                        enqueueSnackbar(res.data?.message,{variant:'error'});
+                    }
+                }).catch(err=>{
+
+                }).finally(()=>{
+
+                })
+            }
+        }
+        catch (err) {
+            console.log(err)
+        }
+    }
     const onSubmit = async (data) => {
         try {
             const iData = new FormData();
 
             if (typeof data.image === 'string') {
-                axios.post('/api/admin/condominium/set-condo-without-image', { ...data, id: (mode === 'update' ? (user?.condo?.id || 0) : 0) }).then(res => {
+                axios.post('/api/admin/condominium/set-condo-without-image', { ...data, id: (mode === 'update' ? (user?.condo?.id || 0) : 0) }).then(async(res) => {
                     if (res.status === 200) {
-                        enqueueSnackbar(res.data?.message);
-                        initialize();
-                        reset(defaultValues)
+                        
+                        await uploadLogo(data, res.data.data.id);
                     }
                     else {
                         enqueueSnackbar(res.data?.message || "Failed your request", { variant: 'error' });
@@ -142,16 +203,15 @@ export default function Edit() {
                 iData.append("city", data.city);
                 iData.append("state", data.state);
                 iData.append("zip", data.zip);
-                iData.append("reservationEmailType", data.reservationEmailType);
-                iData.append("guestList", data.guestList);
-                iData.append("cardPosition", data.cardPosition);
-                iData.append("validateBirth", data.validateBirth);
+                // iData.append("reservationEmailType", data.reservationEmailType);
+                // iData.append("guestList", data.guestList);
+                // iData.append("cardPosition", data.cardPosition);
+                // iData.append("validateBirth", data.validateBirth);
                 iData.append("id", (mode === 'update' ? (user?.condo?.id || 0) : 0));
-                axios.post('/api/admin/condominium/set-condo-with-image', iData).then(res => {
+                axios.post('/api/admin/condominium/set-condo-with-image', iData).then(async(res) => {
                     if (res.status === 200) {
-                        enqueueSnackbar(res.data?.message);
-                        initialize();
-                        reset(defaultValues)
+                        await uploadLogo(data,res.data.data.id);
+                         
                     }
                     else {
                         enqueueSnackbar(res.data?.message || "Failed your request", { variant: 'error' });
@@ -164,54 +224,85 @@ export default function Edit() {
         }
     };
 
-    const handleChangeCondo = (e, value)=>{
-        axios.post('/api/admin/user/update-condo',{condoId:value.id}).then(res=>{
+    const handleChangeCondo = (e, value) => {
+        axios.post('/api/admin/user/update-condo', { condoId: value.id }).then(res => {
             enqueueSnackbar(res.data?.message);
             initialize();
         })
     }
-    useEffect(()=>{
+    useEffect(() => {
 
         reset(defaultValues)
-    },[user,reset,defaultValues]);
+    }, [user, reset, defaultValues]);
 
     return (
         <>
             {user?.disId === 'super-administrator' &&
-                <Stack padding={2}>
-                    <Autocomplete options={condominiums} renderInput = {(params)=><TextField {...params} label = "Current Condominium" />}  isOptionEqualToValue={(option,value)=>(option.name === value.name)}  defaultValue={user?.condo}   getOptionLabel={(option) => option.name} onChange={handleChangeCondo} />
-                    
+                <Stack padding={2} sx ={{bgcolor:'background.paper'}}>
+                    <Autocomplete options={condominiums} renderInput={(params) => <TextField {...params} label="Current Condominium" />} isOptionEqualToValue={(option, value) => (option.name === value.name)} defaultValue={user?.condo} getOptionLabel={(option) => option.name} onChange={handleChangeCondo} />
+
                 </Stack>
             }
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Stack spacing={3} paddingTop={1}>
-                    <Typography variant='subtitle1'>Condominium information</Typography>
-                    <RHFUploadSingleFile name="image" onDrop={handleDrop} />
-                    <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                        <RHFTextField name="name" label="Name" />
-                        <RHFTextField name="siteAddress" label="Website" InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
-                    </Stack>
-                    <Typography variant='subtitle1'>Condominium Contact</Typography>
-                    <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                        <RHFTextField name="email" label="Email" />
-                        <RHFTextField name="phoneNumber" label="Phone Number" />
-                    </Stack>
-                    <Typography variant='subtitle1'>Condominium Address</Typography>
-                    <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                        <RHFTextField name="zip" label="Zip code" />
-                        <RHFTextField name="publicPlace" label="Public place" />
-                        <RHFTextField name="condoNumber" label="Number" />
-                    </Stack>
-                    <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                        <RHFTextField name="city" label="City" />
-                        <RHFTextField name="state" label="State" />
+                    <Card>
+                        <CardHeader title={'Condominium information'} />
+                        <CardContent >
+                            <RHFUploadLogo name="logo" onDrop={handleDropLogo}
+                                helperText={
+                                    <Typography
+                                        variant="caption"
+                                        sx={{
+                                            my: 2,
+                                            mx: 'auto',
+                                            display: 'block',
+                                            textAlign: 'center',
+                                            color: 'text.secondary',
+                                        }}
+                                    >
+                                        Choose logo image.
+                                    </Typography>
+                                } />
 
-                    </Stack>
-                    <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                        <RHFTextField name="neighbohood" label="Neighborhood" />
-                        <RHFTextField name="streetType" label="Type of street" />
-                    </Stack>
-                    <Typography variant='subtitle1'>Condominium setting and permission</Typography>
+
+                            <RHFUploadSingleFile name="image" onDrop={handleDrop} sx={{ mb: 4 }} />
+                            <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                <RHFTextField name="name" label="Name" />
+                                <RHFTextField name="siteAddress" label="Website" InputProps={{ startAdornment: <InputAdornment position="start">https://</InputAdornment> }} />
+                            </Stack>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader title='Condominium Contact' />
+                        <CardContent>
+                            <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                <RHFTextField name="email" label="Email" />
+                                <RHFTextField name="phoneNumber" label="Phone Number" />
+                            </Stack>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader title='Condominium Address' />
+                        <CardContent >
+                            <Stack gap={2}>
+                                <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                    <RHFTextField name="zip" label="Zip code" />
+                                    <RHFTextField name="publicPlace" label="Public place" />
+                                    <RHFTextField name="condoNumber" label="Number" />
+                                </Stack>
+                                <Stack gap={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                    <RHFTextField name="city" label="City" />
+                                    <RHFTextField name="state" label="State" />
+
+                                </Stack>
+                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                    <RHFTextField name="neighbohood" label="Neighborhood" />
+                                    <RHFTextField name="streetType" label="Type of street" />
+                                </Stack>
+                            </Stack>
+
+                            {/* <Typography variant='subtitle1'>Condominium setting and permission</Typography>
                     <Stack gap={1}>
                         <RHFSelect name="reservationEmailType" label="Reservation Email" sx={{ mb: 2 }}>
                             {mailOptions.map((option, index) => (
@@ -255,16 +346,17 @@ export default function Edit() {
                             </Grid>
                         </Grid>
 
-                    </Stack>
-
+                    </Stack> */}
+                        </CardContent>
+                    </Card>
                     <Box>
                         {user?.condo && user?.condo !== null &&
-                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'} size = "large">
+                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'} size="large">
                                 Update
                             </LoadingButton>
                         }
                         {(user?.disId === 'super-administrator') &&
-                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }} size = "large">
+                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }} size="large">
                                 Add Condominium
                             </LoadingButton>
                         }

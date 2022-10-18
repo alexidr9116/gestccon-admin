@@ -22,6 +22,7 @@ const MainStyle = styled('main', {
   flexGrow: 1,
   paddingTop: HEADER.MOBILE_HEIGHT + 24,
   paddingBottom: HEADER.MOBILE_HEIGHT + 24,
+  background:theme.palette.background.neutral,
   [theme.breakpoints.up('lg')]: {
     paddingLeft: 16,
     paddingRight: 16,
@@ -62,8 +63,9 @@ export default function DashboardLayout() {
         )}
 
         <Box
-          component="main"
+         
           sx={{
+            bgcolor: 'background.neutral',
             px: { lg: 2 },
             pt: {
               xs: `${HEADER.MOBILE_HEIGHT + 24}px`,

@@ -9,7 +9,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from '@mui/lab';
 import { styled } from '@mui/material/styles';
 import { MobileDatePicker } from '@mui/x-date-pickers';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, Skeleton } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, Skeleton, CardContent, CardHeader } from '@mui/material';
 // routes
 import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
@@ -22,6 +22,9 @@ import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 // components
 import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar } from '../../../components/hook-form';
 import ResidentTableRow from './list/ResidentTableRow';
+import CategoryDialog from './dialog/CategoryDialog';
+import EmailDialog from './dialog/EmailDialog';
+import TelephoneDialog from './dialog/TelephoneDialog';
 
 // ----------------------------------------------------------------------
 
@@ -39,19 +42,23 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 export default function Resident() {
-    const navigate = useNavigate();
     const [mode, setMode] = useState('view');
-    const [openMenu, setOpenMenuActions] = useState(null);
     const [filter, setFilter] = useState('');
     const { enqueueSnackbar } = useSnackbar();
     const [selectedUser, setSelectedUser] = useState(null);
-    const [loading,setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
+
+    const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
+    const [openEmailDialog, setOpenEmailDialog] = useState(false);
+    const [openTelephoneDialog, setOpenTelephoneDialog] = useState(false);
+    const [openAddressDialog, setOpenAddressDialog] = useState(false);
+    const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
 
     const [residents, setResidents] = useState([]);
     const [aparts, setAparts] = useState([]);
     const [blocks, setBlocks] = useState([]);
     const [filterBlocks, setFilterBlocks] = useState([]);
-
+    const [userCategories, setUserCategories] = useState([]);
     const RegisterForm = Yup.object().shape({
         name: Yup.string().required('Name field is required'),
         email: Yup.string().required('Email field is required'),
@@ -72,7 +79,7 @@ export default function Resident() {
         apart: selectedUser?.apartment?.id || 0,
         category: selectedUser?.category || '',
         mayReceiveMessage: `${selectedUser?.mayReceiveMessage}` || 'true',
-        mayReservation: `${selectedUser?.mayReservation}`|| 'true',
+        mayReservation: `${selectedUser?.mayReservation}` || 'true',
         // observation:selectedUser?.observation || 'true',
         status: `${selectedUser?.status}` || '1',
     }), [selectedUser]);
@@ -96,7 +103,7 @@ export default function Resident() {
     const onSubmit = async (data) => {
         try {
             const iData = new FormData();
-       
+
             if (typeof data.image === 'string') {
                 axios.post('/api/admin/user/set-resident-without-image', { ...data, id: (mode === 'edit' ? (selectedUser?.id || 0) : 0) }).then(res => {
                     if (res.status === 200) {
@@ -163,18 +170,21 @@ export default function Resident() {
         setMode('edit')
     }
     useEffect(() => {
-        if (selectedUser)
-            reset(defaultValues)
-    }, [selectedUser, defaultValues, reset])
-    const {
 
+        reset(defaultValues)
+    }, [selectedUser, defaultValues, reset])
+
+    const onCloseCategoryDialog = (categories) => {
+        setOpenCategoryDialog(false);
+        setUserCategories(categories);
+    }
+    const {
         page,
         order,
         orderBy,
         rowsPerPage,
         //
         selected,
-
         //
         onSort,
 
@@ -207,140 +217,176 @@ export default function Resident() {
             }
             setLoading(false)
         }
+        const loadCategories = async () => {
+            const response = await axios.get('/api/admin/user/get-category');
+            if (response.status === 200 && response.data.data) {
+                setUserCategories(response.data.data.categories);
+            }
+
+        }
         if (mode === 'view') {
             setLoading(true)
+            loadCategories();
             loadResidents();
             loadBlocks();
             loadAparts();
-            
+
         }
 
     }, [mode])
     useEffect(() => {
         setFilterBlocks(aparts.filter((apart) => `${apart.blockId}` === `${block}`))
-    }, [block, aparts])
+    }, [block, aparts]);
+
+    const onCategory = () => {
+        setOpenCategoryDialog(true)
+    }
     return (
         <>
 
             {mode === 'view' &&
-                <>
-                    <Stack marginBottom={2} paddingX={1} direction={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} spacing={1} gap={1}>
-                        <TextField label="Keywords" onChange={(e) => setFilter(e.target.value)} value={filter} />
-                        <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); reset(defaultValues); }}>New Resident</Button>
-                    </Stack>
-                    <Scrollbar>
-                        {loading &&
-                            <>
-                                {
-                                    [1, 2, 3, 4, 5].map((index) => (
-                                        <Skeleton animation="wave" height={40} key={index} />
-                                    ))
-                                }
+                <Card>
+                    <CardContent>
+                        <Stack marginBottom={2} paddingX={1} direction={{ xs: 'column', sm: 'row' }} justifyContent={'space-between'} spacing={1} gap={1}>
+                            <TextField label="Keywords" onChange={(e) => setFilter(e.target.value)} value={filter} />
+                            <Button variant='outlined' onClick={() => { setSelectedUser(null); setMode('new'); }}>New Resident</Button>
+                        </Stack>
+                        <Scrollbar>
+                            {loading &&
+                                <>
+                                    {
+                                        [1, 2, 3, 4, 5].map((index) => (
+                                            <Skeleton animation="wave" height={40} key={index} />
+                                        ))
+                                    }
 
-                            </>
+                                </>
 
-                        }
-                        {!loading &&
+                            }
+                            {!loading &&
 
-                            <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                                <Table >
-                                    <TableHeadCustom
-                                        order={order}
-                                        orderBy={orderBy}
-                                        headLabel={TABLE_HEAD}
-                                        rowCount={residents?.length}
-                                        numSelected={selected.length}
-                                        onSort={onSort}
-                                    // onSelectAllRows={(checked) =>
-                                    //     onSelectAllRows(
-                                    //         checked,
-                                    //         roles.map((row) => row.id)
-                                    //     )
-                                    // }
-                                    />
+                                <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                                    <Table >
+                                        <TableHeadCustom
+                                            order={order}
+                                            orderBy={orderBy}
+                                            headLabel={TABLE_HEAD}
+                                            rowCount={residents?.length}
+                                            numSelected={selected.length}
+                                            onSort={onSort}
+                                        // onSelectAllRows={(checked) =>
+                                        //     onSelectAllRows(
+                                        //         checked,
+                                        //         roles.map((row) => row.id)
+                                        //     )
+                                        // }
+                                        />
 
-                                    <TableBody>
-                                        {(residents.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.category?.name?.includes(filter)))).map((user, index) => (
-                                            <ResidentTableRow 
-                                                index = {index}
-                                                key = {index}
-                                                row = {user}
-                                                onEditRow = {()=>onSelectRow(user)}
-                                                onDeleteRow = {()=>onDeleteRow(user)}
-                                            />
-                                        ))}
-                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, residents.length)} />
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        }
-                    </Scrollbar>
-                </>
+                                        <TableBody>
+                                            {(residents.filter((user) => (user.name.includes(filter) || user.email.includes(filter) || user.category?.name?.includes(filter)))).map((user, index) => (
+                                                <ResidentTableRow
+                                                    index={index}
+                                                    key={index}
+                                                    row={user}
+                                                    onEditRow={() => onSelectRow(user)}
+                                                    onDeleteRow={() => onDeleteRow(user)}
+                                                />
+                                            ))}
+                                            <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, residents.length)} />
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            }
+                        </Scrollbar>
+                    </CardContent>
+                </Card>
             }
             {mode !== 'view' &&
                 <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                     <Stack spacing={3} paddingTop={1}>
-                        <Stack direction={'row'} gap={1} justifyContent="space-between" >
+                        <Card>
+                            <CardContent>
+                                <Stack direction={'row'} gap={1} justifyContent="space-between" >
 
-                            <Typography variant='subtitle1'>Resident information</Typography>
-                            <IconButton onClick={() => setMode('view')}>
-                                <Iconify icon="eva:arrow-back-outline" />
-                            </IconButton>
-                        </Stack>
-                        <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
-                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
-
-                            <RHFUploadAvatar name="image" onDrop={handleDrop}
-                                helperText={
-                                    <Typography
-                                        variant="caption"
-                                        sx={{
-                                            mt: 2,
-                                            mx: 'auto',
-                                            display: 'block',
-                                            textAlign: 'center',
-                                            color: 'text.secondary',
-                                        }}
-                                    >
-                                        Allowed *.jpeg, *.jpg, *.png, *.gif
-                                    </Typography>
-                                } />
-                            <Stack sx={{ flexShrink: 1, justifyContent: 'space-between', py: 2 }}>
-                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                                    <RHFTextField name="name" label="Name" />
-                                    <RHFTextField name="email" label="Email" />
+                                    <Typography variant='subtitle1'>Resident information</Typography>
+                                    <IconButton onClick={() => setMode('view')}>
+                                        <Iconify icon="eva:arrow-back-outline" />
+                                    </IconButton>
                                 </Stack>
-                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
-                                    <RHFTextField name="password" label="Password" />
-                                    <RHFTextField name="cell" label="Cell" />
+                                <Typography variant='subtitle2'>Here you will define information about the user.</Typography>
+                                <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { xs: 'column', md: 'row' }, justifyContent: 'space-between' }}>
+
+                                    <RHFUploadAvatar name="image" onDrop={handleDrop}
+                                        helperText={
+                                            <Typography
+                                                variant="caption"
+                                                sx={{
+                                                    mt: 2,
+                                                    mx: 'auto',
+                                                    display: 'block',
+                                                    textAlign: 'center',
+                                                    color: 'text.secondary',
+                                                }}
+                                            >
+                                                Allowed *.jpeg, *.jpg, *.png, *.gif
+                                            </Typography>
+                                        } />
+                                    <Stack sx={{ flexShrink: 1, justifyContent: 'space-between', py: 2 }}>
+                                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                            <RHFTextField name="name" label="Name" />
+                                            <RHFTextField name="email" label="Email" />
+                                        </Stack>
+                                        <Stack gap={1} paddingBottom={1} sx={{ flexDirection: { md: 'row', xs: 'column' } }}>
+                                            <RHFTextField name="password" label="Password" />
+                                            <RHFTextField name="cell" label="Cell" />
+                                        </Stack>
+                                    </Stack>
+
                                 </Stack>
-                            </Stack>
 
-                        </Stack>
+                                <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
+                                    <RHFSelect name="block" label="Block" sx={{ mb: 2 }}>
+                                        <option value={0}>Select Block</option>
+                                        {blocks.map((block, index) => (
+                                            <option key={block.id} value={block.id}>
+                                                {block.name}
+                                            </option>
 
-                        <Stack sx={{ flexDirection: { md: 'row', xs: 'column' } }} gap={2}>
-                            <RHFSelect name="block" label="Block" sx={{ mb: 2 }}>
-                                <option value={0}>Select Block</option>
-                                {blocks.map((block, index) => (
-                                    <option key={block.id} value={block.id}>
-                                        {block.name}
-                                    </option>
+                                        ))}
+                                    </RHFSelect>
+                                    <RHFSelect name="apart" label="Apartment" sx={{ mb: 2 }}>
+                                        {filterBlocks.map((apart, index) => (
+                                            <option key={index} value={apart.id}>
+                                                {apart.name}
+                                            </option>
 
-                                ))}
-                            </RHFSelect>
-                            <RHFSelect name="apart" label="Apartment" sx={{ mb: 2 }}>
-                                {filterBlocks.map((apart, index) => (
-                                    <option key={index} value={apart.id}>
-                                        {apart.name}
-                                    </option>
+                                        ))}
+                                    </RHFSelect>
+                                </Stack>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent>
+                                <Stack gap={2}>
+                                    <Typography variant='subtitle1'>User settings and permissions</Typography>
+                                    <Stack direction="row" gap={2}>
+                                        <RHFSelect name="category" label="Category">
+                                            <optgroup label="System">
+                                                {userCategories?.filter((c) => c.type === 'System').map((c, index) => (
+                                                    <option value={c.name} key={index}>{c.name}</option>
+                                                ))}
+                                            </optgroup>
+                                            <optgroup label="Customize">
+                                                {userCategories?.filter((c) => c.type === 'Customize').map((c, index) => (
+                                                    <option value={c.name} key={index}>{c.name}</option>
+                                                ))}
+                                            </optgroup>
+                                        </RHFSelect>
 
-                                ))}
-                            </RHFSelect>
-                        </Stack>
-                        <Stack gap={2}>
-                            <Typography variant='subtitle1'>User settings and permissions</Typography>
-                            <RHFTextField name="category" label="Category" />
-                            {/* <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
+                                        <Button onClick={onCategory} variant={'outlined'}>Manage</Button>
+                                    </Stack>
+
+                                    {/* <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
                                 {["ROLES"].map((category, index) => (
                                     <option key={index} value={category}>
                                         {category}
@@ -348,50 +394,71 @@ export default function Resident() {
 
                                 ))}
                             </RHFSelect> */}
-                            <Grid container spacing={1}>
-                                <Grid item xs={12} md={5}>
-                                    <Typography variant='subtitle1'>Will you receive messages?</Typography>
-                                    <RHFToggleGroup
-                                        name='mayReceiveMessage'
-                                        options={[
-                                            { value: 'true', label: 'Yes' },
-                                            { value: 'false', label: 'No' },
+                                    <Grid container spacing={1}>
+                                        <Grid item xs={12} md={5}>
+                                            <Typography variant='subtitle1'>Will you receive messages?</Typography>
+                                            <RHFToggleGroup
+                                                name='mayReceiveMessage'
+                                                options={[
+                                                    { value: 'true', label: 'Yes' },
+                                                    { value: 'false', label: 'No' },
 
-                                        ]}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={4}>
-                                    <Typography variant='subtitle1'>Can you make reservations?</Typography>
-                                    <RHFToggleGroup
-                                        name='mayReservation'
-                                        options={[
-                                            { value: 'true', label: 'Yes' },
-                                            { value: 'false', label: 'No' },
-                                        ]}
-                                    />
-                                </Grid>
-                                <Grid item xs={12} md={3}>
-                                    <Typography variant='subtitle1'>Status</Typography>
-                                    <RHFToggleGroup
-                                        name='status'
-                                        options={[
-                                            { value: '1', label: 'Active' },
-                                            { value: '0', label: 'InActive' },
-                                        ]}
-                                    />
-                                </Grid>
-                            </Grid>
+                                                ]}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={4}>
+                                            <Typography variant='subtitle1'>Can you make reservations?</Typography>
+                                            <RHFToggleGroup
+                                                name='mayReservation'
+                                                options={[
+                                                    { value: 'true', label: 'Yes' },
+                                                    { value: 'false', label: 'No' },
+                                                ]}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} md={3}>
+                                            <Typography variant='subtitle1'>Status</Typography>
+                                            <RHFToggleGroup
+                                                name='status'
+                                                options={[
+                                                    { value: '1', label: 'Active' },
+                                                    { value: '0', label: 'InActive' },
+                                                ]}
+                                            />
+                                        </Grid>
+                                    </Grid>
 
-                        </Stack>
+                                </Stack>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader title="Optional registration (possible to edit mode)" subheader="Select the additional data you want to assign to the resident." />
+                            <CardContent>
+                                <Stack direction={'row'} flexWrap={'wrap'} gap = {1}>
+                                    <Button disabled={selectedUser === null} variant="outlined" onClick={() => setOpenEmailDialog(true)}>Email</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined" onClick={() => setOpenTelephoneDialog(true)}>Telephone</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined">Address</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined">Vehicle</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined">Bicycle</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined">Document</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined">Medical Certificate</Button>
+                                    <Button disabled={selectedUser === null} variant="outlined">Observation</Button>
+                                </Stack>
+                            </CardContent>
+                        </Card>
 
                         <Box>
-                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size = "large">
+                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size="large">
                                 {selectedUser !== null ? 'Update' : 'Register'}
                             </LoadingButton>
                         </Box>
                     </Stack>
                 </FormProvider >
             }
+
+            <CategoryDialog onClose={onCloseCategoryDialog} open={openCategoryDialog} />
+            <EmailDialog onClose={() => {setOpenEmailDialog(false) }} open={openEmailDialog} user = {selectedUser?.id}/>
+            <TelephoneDialog onClose={() => {setOpenTelephoneDialog(false) }} open={openTelephoneDialog} user = {selectedUser?.id}/>
         </>
 
     );
