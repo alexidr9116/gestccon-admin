@@ -13,7 +13,7 @@ import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, B
 // routes
 
 // components
-import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadLogo } from '../../../components/hook-form';
+import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadImage } from '../../../components/hook-form';
 import useAuth from '../../../hooks/useAuth';
 import axios from '../../../utils/axios';
 import { HOST_API } from '../../../config';
@@ -248,7 +248,7 @@ export default function Edit() {
                     <Card>
                         <CardHeader title={'Condominium information'} />
                         <CardContent >
-                            <RHFUploadLogo name="logo" onDrop={handleDropLogo}
+                            <RHFUploadImage name="logo" onDrop={handleDropLogo}
                                 helperText={
                                     <Typography
                                         variant="caption"

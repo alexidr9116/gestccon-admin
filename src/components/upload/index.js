@@ -1,7 +1,7 @@
 export { default as BlockContent } from './BlockContent';
 export { default as RejectionFiles } from './RejectionFiles';
 export { default as MultiFilePreview } from './MultiFilePreview';
-export { default as UploadLogo } from './UploadLogo';
+export { default as UploadImage } from './UploadImage';
 export { default as UploadAvatar } from './UploadAvatar';
 export { default as UploadMultiFile } from './UploadMultiFile';
 export { default as UploadSingleFile } from './UploadSingleFile';

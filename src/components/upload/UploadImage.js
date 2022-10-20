@@ -56,14 +56,14 @@ const PlaceholderStyle = styled('div')(({ theme }) => ({
 
 // ----------------------------------------------------------------------
 
-UploadLogo.propTypes = {
+UploadImage.propTypes = {
   error: PropTypes.bool,
   file: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
   helperText: PropTypes.node,
   sx: PropTypes.object,
 };
 
-export default function UploadLogo({ error, file, helperText, sx, ...other }) {
+export default function UploadImage({ error, file, helperText, sx, ...other }) {
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
     multiple: false,
     ...other,

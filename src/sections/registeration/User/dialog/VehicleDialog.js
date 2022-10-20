@@ -1,5 +1,6 @@
-import { Button, Card, CardContent, CardHeader, Dialog, Skeleton, Stack, Table, TableBody, TableContainer, TextField, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, CardHeader, Dialog, Menu, Skeleton, Stack, Table, TableBody, TableContainer, TextField, Typography } from "@mui/material";
 import PropType from 'prop-types';
+
 import { useEffect, useMemo, useState } from "react";
 import * as Yup from 'yup';
 import { useSnackbar } from "notistack";
@@ -7,6 +8,8 @@ import { useSnackbar } from "notistack";
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from "@mui/lab";
+import { SketchPicker } from 'react-color';
+
 import Scrollbar from '../../../../components/Scrollbar';
 import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar } from '../../../../components/hook-form';
 import Iconify from '../../../../components/Iconify';
@@ -18,35 +21,44 @@ import useTable, { getComparator, emptyRows } from '../../../../hooks/useTable';
 import CategoryTableRow from "../list/CategoryTableRow";
 import EmailTableRow from "../list/EmailTableRow";
 import TelephoneTableRow from "../list/TelephoneTableRow";
+import VehicleTableRow from "../list/VehicleTableRow";
 
 
 
 
-TelephoneDialog.propTypes = {
+VehicleDialog.propTypes = {
     open: PropType.bool,
     onClose: PropType.func,
     user: PropType.number
 }
 const TABLE_HEAD = [
     { id: 'no', label: 'No', align: 'left' },
-    { id: 'phoneNumber', label: 'Phone Number', align: 'left' },
-    { id: 'cell', label: 'Cell', align: 'left' },
+    { id: 'board', label: 'Board', align: 'left' },
+    { id: 'model', label: 'Model', align: 'left' },
+    { id: 'color', label: 'Color', align: 'left' },
     { id: '' },
 ];
 
-export default function TelephoneDialog({ open, onClose, user }) {
+export default function VehicleDialog({ open, onClose, user }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState([]);
     const [current, setCurrent] = useState(null);
     const { enqueueSnackbar } = useSnackbar();
+    const [colorPicker, setColorPicker] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);
+    const openPicker = Boolean(anchorEl);
+
     const RegisterForm = Yup.object().shape({
-        phoneNumber: Yup.string().required('Phonenumber field is required'),
-        cell: Yup.string().required('Cell field is required'),
+        board: Yup.string().required('Board field is required'),
+        model: Yup.string().required('Model field is required'),
+        color: Yup.string().required('Color field is required'),
+
     });
 
     const defaultValues = useMemo(() => ({
-        phoneNumber: current?.phoneNumber || '',
-        cell: current?.cell || '',
+        board: current?.board || '',
+        model: current?.model || '',
+        color: current?.color || '',
     }), [current]);
 
     const methods = useForm({
@@ -64,13 +76,15 @@ export default function TelephoneDialog({ open, onClose, user }) {
         onSort,
     } = useTable();
     const {
+        setValue,
+        watch,
         reset,
         handleSubmit,
         formState: { isSubmitting, isValid },
     } = methods;
-
+    const color = watch('color');
     const onSubmit = async (data) => {
-        axios.post('/api/admin/user/set-telephone', { ...data, user, id: (current?.id || 0) }).then(res => {
+        axios.post('/api/admin/user/set-vehicle', { ...data, user, id: (current?.id || 0) }).then(res => {
             if (res.status === 200) {
                 enqueueSnackbar(res?.data?.message);
                 setCurrent(null)
@@ -85,7 +99,7 @@ export default function TelephoneDialog({ open, onClose, user }) {
 
     }
     const onDeleteRow = async (row) => {
-        axios.delete(`/api/admin/user/delete-telephone/${(row?.id || 0)}`,).then(res => {
+        axios.delete(`/api/admin/user/delete-vehicle/${(row?.id || 0)}`,).then(res => {
             if (res.status === 200) {
                 enqueueSnackbar(res?.data?.message);
                 setCurrent(null)
@@ -97,9 +111,9 @@ export default function TelephoneDialog({ open, onClose, user }) {
     }
     const load = async () => {
         setLoading(true)
-        axios.get(`/api/admin/user/get-telephone/${user}`).then(res => {
+        axios.get(`/api/admin/user/get-vehicle/${user}`).then(res => {
             if (res.status === 200 && res.data.data) {
-                setData(res.data.data.telephones);
+                setData(res.data.data.vehicles);
             }
         }).catch(err => {
 
@@ -115,15 +129,38 @@ export default function TelephoneDialog({ open, onClose, user }) {
         if (open)
             load();
     }, [open]);
+    const handleColorPicker = (color) => {
+        setValue('color', color.hex);
+    }
+    const handleClosePicker = (color) => {
+        setAnchorEl(null)
 
-
+    }
     return (
         <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Card>
-                    <CardHeader title={'Registered Numbers'} />
+                    <CardHeader title={' Optional Vehicle'} />
                     <CardContent>
-                        
+                        <Stack marginBottom={2} paddingX={1} justifyContent={'space-between'} spacing={1} gap={1}>
+                            <RHFTextField name={'board'} label="Board" />
+                            <RHFTextField name={'model'} label="Model" />
+                            <Stack direction='row' gap={1}>
+                                <RHFTextField name={'color'} label="Color" disabled />
+                                <Button variant="outlined" onClick={(e) => { setAnchorEl(e.target); setColorPicker(true) }}>Choose</Button>
+                            </Stack>
+                            <Menu anchorEl={anchorEl} open={openPicker} onClose={handleClosePicker}>
+                                <Box sx={{ p: 2 }}>
+                                    <SketchPicker color={color} onChange={handleColorPicker} />
+                                </Box>
+
+                            </Menu>
+
+                        </Stack>
+
+                        <Typography variant="h6" sx={{ mt: 4, mb:2 }}>
+                            Registered Vehicles
+                        </Typography>
                         <Scrollbar>
                             {loading &&
                                 <>
@@ -157,7 +194,7 @@ export default function TelephoneDialog({ open, onClose, user }) {
 
                                         <TableBody>
                                             {(data.map((ct, index) => (
-                                                <TelephoneTableRow
+                                                <VehicleTableRow
                                                     index={index}
                                                     key={index}
                                                     row={ct}
@@ -171,13 +208,6 @@ export default function TelephoneDialog({ open, onClose, user }) {
                                 </TableContainer>
                             }
                         </Scrollbar>
-                        <Typography variant="h6" sx={{ mb: 2 }}>
-                            Optional Telephones
-                        </Typography>
-                        <Stack marginBottom={2}   paddingX={1} justifyContent={'space-between'} spacing={1} gap={1}>
-                            <RHFTextField name={'phoneNumber'} label="Telephone" />
-                            <RHFTextField name={'cell'} label="Cell" />
-                        </Stack>
                         <Stack sx={{ mt: 2, justifyContent: 'end' }} direction="row" gap={2} >
                             <Button onClick={onClose} variant="outlined" size="large">Close</Button>
                             <LoadingButton variant="contained" type="submit" size="large">Save</LoadingButton>

@@ -88,6 +88,7 @@
     "react-apexcharts": "^1.4.0",
     "react-app-rewired": "^2.2.1",
     "react-beautiful-dnd": "^13.1.0",
+    "react-color": "^2.19.3",
     "react-copy-to-clipboard": "^5.1.0",
     "react-dom": "^18.2.0",
     "react-dropzone": "^14.2.2",

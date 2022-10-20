@@ -129,7 +129,7 @@ export default function CategoryDialog({ open, onClose }) {
                             {loading &&
                                 <>
                                     {
-                                        [1, 2, 3, 4, 5].map((index) => (
+                                        [1, 2, 3].map((index) => (
                                             <Skeleton animation="wave" height={40} key={index} />
                                         ))
                                     }
@@ -140,7 +140,7 @@ export default function CategoryDialog({ open, onClose }) {
                             {!loading &&
 
                                 <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                                    <Table >
+                                    <Table size= "small">
                                         <TableHeadCustom
                                             order={order}
                                             orderBy={orderBy}

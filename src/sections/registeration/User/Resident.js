@@ -20,11 +20,14 @@ import { HOST_API } from '../../../config';
 
 import useTable, { getComparator, emptyRows } from '../../../hooks/useTable';
 // components
-import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar } from '../../../components/hook-form';
+import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar, RHFEditor } from '../../../components/hook-form';
 import ResidentTableRow from './list/ResidentTableRow';
 import CategoryDialog from './dialog/CategoryDialog';
 import EmailDialog from './dialog/EmailDialog';
 import TelephoneDialog from './dialog/TelephoneDialog';
+import AddressDialog from './dialog/AddressDialog';
+import VehicleDialog from './dialog/VehicleDialog';
+import BicycleDialog from './dialog/BicycleDialog';
 
 // ----------------------------------------------------------------------
 
@@ -53,6 +56,8 @@ export default function Resident() {
     const [openTelephoneDialog, setOpenTelephoneDialog] = useState(false);
     const [openAddressDialog, setOpenAddressDialog] = useState(false);
     const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
+    const [openBicycleDialog, setOpenBicycleDialog] = useState(false);
+    const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
 
     const [residents, setResidents] = useState([]);
     const [aparts, setAparts] = useState([]);
@@ -80,7 +85,7 @@ export default function Resident() {
         category: selectedUser?.category || '',
         mayReceiveMessage: `${selectedUser?.mayReceiveMessage}` || 'true',
         mayReservation: `${selectedUser?.mayReservation}` || 'true',
-        // observation:selectedUser?.observation || 'true',
+        observation:selectedUser?.observation || '',
         status: `${selectedUser?.status}` || '1',
     }), [selectedUser]);
 
@@ -431,15 +436,18 @@ export default function Resident() {
                                 </Stack>
                             </CardContent>
                         </Card>
+
                         <Card>
                             <CardHeader title="Optional registration (possible to edit mode)" subheader="Select the additional data you want to assign to the resident." />
                             <CardContent>
-                                <Stack direction={'row'} flexWrap={'wrap'} gap = {1}>
+                                <Typography variant='subtitle1'>Observation</Typography>
+                                <RHFEditor name={'observation'} simple />
+                                <Stack direction={'row'} flexWrap={'wrap'} gap={1}>
                                     <Button disabled={selectedUser === null} variant="outlined" onClick={() => setOpenEmailDialog(true)}>Email</Button>
                                     <Button disabled={selectedUser === null} variant="outlined" onClick={() => setOpenTelephoneDialog(true)}>Telephone</Button>
-                                    <Button disabled={selectedUser === null} variant="outlined">Address</Button>
-                                    <Button disabled={selectedUser === null} variant="outlined">Vehicle</Button>
-                                    <Button disabled={selectedUser === null} variant="outlined">Bicycle</Button>
+                                    <Button onClick={() => setOpenAddressDialog(true)} disabled={selectedUser === null} variant="outlined">Address</Button>
+                                    <Button onClick={() => setOpenVehicleDialog(true)} disabled={selectedUser === null} variant="outlined">Vehicle</Button >
+                                    <Button onClick={() => setOpenBicycleDialog(true)} variant="outlined" disabled={selectedUser === null} >Bicycle</Button>
                                     <Button disabled={selectedUser === null} variant="outlined">Document</Button>
                                     <Button disabled={selectedUser === null} variant="outlined">Medical Certificate</Button>
                                     <Button disabled={selectedUser === null} variant="outlined">Observation</Button>
@@ -457,8 +465,11 @@ export default function Resident() {
             }
 
             <CategoryDialog onClose={onCloseCategoryDialog} open={openCategoryDialog} />
-            <EmailDialog onClose={() => {setOpenEmailDialog(false) }} open={openEmailDialog} user = {selectedUser?.id}/>
-            <TelephoneDialog onClose={() => {setOpenTelephoneDialog(false) }} open={openTelephoneDialog} user = {selectedUser?.id}/>
+            <EmailDialog onClose={() => { setOpenEmailDialog(false) }} open={openEmailDialog} user={selectedUser?.id} />
+            <TelephoneDialog onClose={() => { setOpenTelephoneDialog(false) }} open={openTelephoneDialog} user={selectedUser?.id} />
+            <AddressDialog onClose={() => { setOpenAddressDialog(false) }} open={openAddressDialog} user={selectedUser?.id} />
+            <VehicleDialog onClose={() => { setOpenVehicleDialog(false) }} open={openVehicleDialog} user={selectedUser?.id} />
+            <BicycleDialog onClose={() => { setOpenBicycleDialog(false) }} open={openBicycleDialog} user={selectedUser?.id} />
         </>
 
     );
