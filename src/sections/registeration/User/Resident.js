@@ -28,6 +28,8 @@ import TelephoneDialog from './dialog/TelephoneDialog';
 import AddressDialog from './dialog/AddressDialog';
 import VehicleDialog from './dialog/VehicleDialog';
 import BicycleDialog from './dialog/BicycleDialog';
+import DocumentDialog from './dialog/DocumentDialog';
+import MedicalCertDialog from './dialog/MedicalCertDialog';
 
 // ----------------------------------------------------------------------
 
@@ -58,7 +60,7 @@ export default function Resident() {
     const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
     const [openBicycleDialog, setOpenBicycleDialog] = useState(false);
     const [openDocumentDialog, setOpenDocumentDialog] = useState(false);
-
+    const [openMedicalDialog, setOpenMedicalDialog] = useState(false);
     const [residents, setResidents] = useState([]);
     const [aparts, setAparts] = useState([]);
     const [blocks, setBlocks] = useState([]);
@@ -85,7 +87,7 @@ export default function Resident() {
         category: selectedUser?.category || '',
         mayReceiveMessage: `${selectedUser?.mayReceiveMessage}` || 'true',
         mayReservation: `${selectedUser?.mayReservation}` || 'true',
-        observation:selectedUser?.observation || '',
+        observation: selectedUser?.observation || '',
         status: `${selectedUser?.status}` || '1',
     }), [selectedUser]);
 
@@ -448,15 +450,15 @@ export default function Resident() {
                                     <Button onClick={() => setOpenAddressDialog(true)} disabled={selectedUser === null} variant="outlined">Address</Button>
                                     <Button onClick={() => setOpenVehicleDialog(true)} disabled={selectedUser === null} variant="outlined">Vehicle</Button >
                                     <Button onClick={() => setOpenBicycleDialog(true)} variant="outlined" disabled={selectedUser === null} >Bicycle</Button>
-                                    <Button disabled={selectedUser === null} variant="outlined">Document</Button>
-                                    <Button disabled={selectedUser === null} variant="outlined">Medical Certificate</Button>
-                                    <Button disabled={selectedUser === null} variant="outlined">Observation</Button>
+                                    <Button onClick={() => setOpenDocumentDialog(true)} disabled={selectedUser === null} variant="outlined">Document</Button>
+                                    <Button onClick={() => setOpenMedicalDialog(true)} disabled={selectedUser === null} variant="outlined">Medical Certificate</Button>
+
                                 </Stack>
                             </CardContent>
                         </Card>
 
                         <Box>
-                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size="large">
+                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} >
                                 {selectedUser !== null ? 'Update' : 'Register'}
                             </LoadingButton>
                         </Box>
@@ -470,6 +472,8 @@ export default function Resident() {
             <AddressDialog onClose={() => { setOpenAddressDialog(false) }} open={openAddressDialog} user={selectedUser?.id} />
             <VehicleDialog onClose={() => { setOpenVehicleDialog(false) }} open={openVehicleDialog} user={selectedUser?.id} />
             <BicycleDialog onClose={() => { setOpenBicycleDialog(false) }} open={openBicycleDialog} user={selectedUser?.id} />
+            <DocumentDialog onClose={()=>setOpenDocumentDialog(false)} open = {openDocumentDialog} user = {selectedUser?.id}/>
+            <MedicalCertDialog onClose={()=>setOpenMedicalDialog(false)} open = {openMedicalDialog} user = {selectedUser?.id}/>
         </>
 
     );

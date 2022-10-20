@@ -2,26 +2,25 @@ import PropTypes from 'prop-types';
 import { useState } from 'react';
 // @mui
 import { useTheme } from '@mui/material/styles';
-import { Avatar, Checkbox, TableRow, TableCell, Typography, MenuItem, Box } from '@mui/material';
+import { Avatar, Checkbox, TableRow, TableCell, Typography, MenuItem } from '@mui/material';
 // components
 import Label from '../../../../components/Label';
 import Iconify from '../../../../components/Iconify';
 import { TableMoreMenu } from '../../../../components/table';
 import { HOST_API } from '../../../../config';
-import Image from '../../../../components/Image';
 
 // ----------------------------------------------------------------------
 
-BicycleTableRow.propTypes = {
+MedicalCertRow.propTypes = {
     row: PropTypes.object,
     index: PropTypes.number,
     onEditRow: PropTypes.func,
     onDeleteRow: PropTypes.func,
 };
 
-export default function BicycleTableRow({ index, row, onEditRow, onDeleteRow }) {
+export default function MedicalCertRow({ index, row, onEditRow, onDeleteRow }) {
 
-    const { name, location, image } = row;
+    const { endDate,type, file } = row;
 
     const [openMenu, setOpenMenuActions] = useState(null);
 
@@ -39,13 +38,13 @@ export default function BicycleTableRow({ index, row, onEditRow, onDeleteRow }) 
                 {index + 1}
             </TableCell>
             <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
-                {name}
+                {endDate}
             </TableCell>
             <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
-                {location}
+                {type}
             </TableCell>
             <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
-                <Image src = {`${HOST_API}${image}`} sx = {{height:80, width:120}} />
+                {file}
             </TableCell>
             <TableCell align="right">
                 <TableMoreMenu

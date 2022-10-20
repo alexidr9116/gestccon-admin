@@ -352,7 +352,7 @@ export default function Administrator() {
 
 
                         <Box>
-                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} size="large">
+                            <LoadingButton variant="contained" type={'submit'} loading={isSubmitting} >
                                 {selectedUser !== null ? 'Update' : 'Register'}
                             </LoadingButton>
                         </Box>

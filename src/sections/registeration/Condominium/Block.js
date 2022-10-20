@@ -178,10 +178,10 @@ export default function Block() {
                                 <RHFTextField name="apartName" label="Apartment name" disabled={blockId === null} />
                             </Stack>
                             <Box sx={{ mt: 2 }}>
-                                <Button variant='outlined' size="large" onClick={() => { setSelectedApart(null); }} sx={{ mr: 1 }}>
+                                <Button variant='outlined'  onClick={() => { setSelectedApart(null); }} sx={{ mr: 1 }}>
                                     Reset
                                 </Button>
-                                <LoadingButton variant="contained" disabled={blockId === null} size="large" loading={isSubmitting} type="submit" onClick={() => setIsApart(true)}>
+                                <LoadingButton variant="contained" disabled={blockId === null}  loading={isSubmitting} type="submit" onClick={() => setIsApart(true)}>
                                     {(selectedApart === null ? 'Register' : 'Update')}
                                 </LoadingButton>
                             </Box>

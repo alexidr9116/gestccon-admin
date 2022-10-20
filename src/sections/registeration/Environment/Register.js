@@ -296,13 +296,13 @@ export default function Register() {
                         </Stack>
 
                         <Box>
-                            <Button size="large" sx={{ mr: 2 }} variant="outlined" onClick={() => {
+                            <Button  sx={{ mr: 2 }} variant="outlined" onClick={() => {
                                 setSelectedEnvironment(null);
                                 reset(defaultValues);
                             }}>
                                 Reset
                             </Button>
-                            <LoadingButton loading={isSubmitting} variant="contained" type='submit' size="large">
+                            <LoadingButton loading={isSubmitting} variant="contained" type='submit' >
                                 {selectedEnvironment !== null ? 'Update' : 'Register'}
                             </LoadingButton>
 

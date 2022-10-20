@@ -153,10 +153,10 @@ export default function Register() {
                         <RHFTextField name="title" label="Description" />
                     </Stack>
                     <Box >
-                        <Button variant='outlined' size="large" onClick={() => setSelectedRole(null)} sx={{ mr: 1 }}>
+                        <Button variant='outlined'  onClick={() => setSelectedRole(null)} sx={{ mr: 1 }}>
                             Reset
                         </Button>
-                        <LoadingButton variant="contained" size="large" loading={isSubmitting} type="submit">
+                        <LoadingButton variant="contained"  loading={isSubmitting} type="submit">
                             {(selectedRole === null ? 'Register' : 'Update')}
                         </LoadingButton>
                     </Box>

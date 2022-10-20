@@ -179,8 +179,8 @@ export default function TelephoneDialog({ open, onClose, user }) {
                             <RHFTextField name={'cell'} label="Cell" />
                         </Stack>
                         <Stack sx={{ mt: 2, justifyContent: 'end' }} direction="row" gap={2} >
-                            <Button onClick={onClose} variant="outlined" size="large">Close</Button>
-                            <LoadingButton variant="contained" type="submit" size="large">Save</LoadingButton>
+                            <Button onClick={onClose} variant="outlined" >Close</Button>
+                            <LoadingButton variant="contained" type="submit" >Save</LoadingButton>
                         </Stack>
                     </CardContent>
 

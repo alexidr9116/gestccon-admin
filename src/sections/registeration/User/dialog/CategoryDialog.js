@@ -173,8 +173,8 @@ export default function CategoryDialog({ open, onClose }) {
                             }
                         </Scrollbar>
                         <Stack sx={{ mt: 2, justifyContent: 'end' }} direction="row" gap={2} >
-                            <Button onClick={onCloseHandle} variant="outlined" size="large">Close</Button>
-                            <LoadingButton variant="contained" type="submit" size="large">Save</LoadingButton>
+                            <Button onClick={onCloseHandle} variant="outlined" >Close</Button>
+                            <LoadingButton variant="contained" type="submit" >Save</LoadingButton>
                         </Stack>
                     </CardContent>
 

@@ -351,12 +351,12 @@ export default function Edit() {
                     </Card>
                     <Box>
                         {user?.condo && user?.condo !== null &&
-                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'} size="large">
+                            <LoadingButton onClick={() => setMode('update')} variant="contained" loading={isSubmitting} type={'submit'} >
                                 Update
                             </LoadingButton>
                         }
                         {(user?.disId === 'super-administrator') &&
-                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }} size="large">
+                            <LoadingButton onClick={() => setMode('new')} variant="outlined" loading={isSubmitting} type={'submit'} sx={{ ml: 2 }} >
                                 Add Condominium
                             </LoadingButton>
                         }

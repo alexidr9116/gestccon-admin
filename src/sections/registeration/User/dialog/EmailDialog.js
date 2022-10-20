@@ -174,8 +174,8 @@ export default function EmailDialog({ open, onClose, user }) {
                             <RHFTextField name={'email'} label="Email Address" />
                         </Stack>
                         <Stack sx={{ mt: 2, justifyContent: 'end' }} direction="row" gap={2} >
-                            <Button onClick={onClose} variant="outlined" size="large">Close</Button>
-                            <LoadingButton variant="contained" type="submit" size="large">Save</LoadingButton>
+                            <Button onClick={onClose} variant="outlined" >Close</Button>
+                            <LoadingButton variant="contained" type="submit" >Save</LoadingButton>
                         </Stack>
                     </CardContent>
 
