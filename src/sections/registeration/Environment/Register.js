@@ -7,7 +7,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useForm, Controller } from 'react-hook-form';
 // @mui
 import { LoadingButton } from '@mui/lab';
-import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, InputAdornment, Skeleton } from '@mui/material';
+import { Grid, Card, Chip, Stack, Button, TextField, Typography, Autocomplete, Box, TableContainer, Table, TableBody, TableRow, TableCell, MenuItem, IconButton, Avatar, InputAdornment, Skeleton, CardContent } from '@mui/material';
 // routes
 import Iconify from '../../../components/Iconify';
 import Scrollbar from '../../../components/Scrollbar';
@@ -48,18 +48,18 @@ export default function Register() {
     const RegisterForm = Yup.object().shape({
         name: Yup.string().required('Name field is required'),
         cost: Yup.number().required('Cost field is required'),
-        capacity:Yup.number().required('Capacity field is required'),
+        capacity: Yup.number().required('Capacity field is required'),
     });
 
     const defaultValues = useMemo(() => ({
         name: selectedEnvironment?.name || "",
         cost: selectedEnvironment?.cost || 0,
-        
+
         image: `${HOST_API}${selectedEnvironment?.image || ''}`,
         perRevervation: selectedEnvironment?.perRevervation || "0",
         showAll: selectedEnvironment?.showAll || '0',
-        state: selectedEnvironment?.state || '1st on hold',
-        status: selectedEnvironment?.status || '1',
+        state: selectedEnvironment?.state || 'confirmed',
+        status: `${selectedEnvironment?.status}` || '1',
         capacity: selectedEnvironment?.capacity || 10,
     }), [selectedEnvironment]);
 
@@ -148,13 +148,13 @@ export default function Register() {
             console.error(error);
         }
     };
-    
+
     const onSelectRow = (environment) => {
         setSelectedEnvironment(environment)
         setMode('edit')
     }
     const onDeleteRow = (row) => {
-        
+
     };
     useEffect(() => {
         if (selectedEnvironment)
@@ -184,119 +184,145 @@ export default function Register() {
                         <TextField label="Keywords" onChange={(e) => setFilter(e.target.value)} value={filter} />
                         <Button variant='outlined' onClick={() => { setSelectedEnvironment(null); setMode('new'); reset(defaultValues); }}>New Environment</Button>
                     </Stack>
-                    <Scrollbar>
-                        {loading &&
-                            <>
-                                {
-                                    [1, 2, 3, 4, 5].map((index) => (
-                                        <Skeleton animation="wave" height={40} key ={index}/>
-                                    ))
+                    <Card>
+                        <CardContent>
+                            <Scrollbar>
+                                {loading &&
+                                    <>
+                                        {
+                                            [1, 2, 3, 4, 5].map((index) => (
+                                                <Skeleton animation="wave" height={40} key={index} />
+                                            ))
+                                        }
+
+                                    </>
+
                                 }
-
-                            </>
-
-                        }
-                        {!loading &&
-                            <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                                <Table >
-                                    <TableHeadCustom
-                                        order={order}
-                                        orderBy={orderBy}
-                                        headLabel={TABLE_HEAD}
-                                        rowCount={environments?.length}
-                                        numSelected={selected.length}
-                                        onSort={onSort}
-                                    // onSelectAllRows={(checked) =>
-                                    //     onSelectAllRows(
-                                    //         checked,
-                                    //         roles.map((row) => row.id)
-                                    //     )
-                                    // }
-                                    />
-
-                                    <TableBody>
-                                        {environments.filter((environment) => (environment.name.includes(filter))).map((environment, index) => (
-                                            <EnvironmentTableRow 
-                                                index = {index}
-                                                key = {index}
-                                                row = {environment}
-                                                onEditRow = {()=>onSelectRow(environment)}
-                                                onDeleteRow = {()=>onDeleteRow(environment)}
-
+                                {!loading &&
+                                    <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                                        <Table size="small">
+                                            <TableHeadCustom
+                                                order={order}
+                                                orderBy={orderBy}
+                                                headLabel={TABLE_HEAD}
+                                                rowCount={environments?.length}
+                                                numSelected={selected.length}
+                                                onSort={onSort}
+                                            // onSelectAllRows={(checked) =>
+                                            //     onSelectAllRows(
+                                            //         checked,
+                                            //         roles.map((row) => row.id)
+                                            //     )
+                                            // }
                                             />
 
-                                        ))}
-                                        <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, environments.length)} />
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        }
-                    </Scrollbar>
+                                            <TableBody>
+                                                {environments.filter((environment) => (environment.name.includes(filter))).map((environment, index) => (
+                                                    <EnvironmentTableRow
+                                                        index={index}
+                                                        key={index}
+                                                        row={environment}
+                                                        onEditRow={() => onSelectRow(environment)}
+                                                        onDeleteRow={() => onDeleteRow(environment)}
+
+                                                    />
+
+                                                ))}
+                                                <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, environments.length)} />
+                                            </TableBody>
+                                        </Table>
+                                    </TableContainer>
+                                }
+                            </Scrollbar>
+                        </CardContent>
+                    </Card>
+
                 </>
             }
             {mode !== 'view' &&
                 <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                     <Stack spacing={3} paddingTop={1}>
-                        <Stack direction={'row'} gap={1} justifyContent="space-between" >
+                        <Card>
+                            <CardContent>
+                                <Stack direction={'row'} gap={1} justifyContent="space-between" >
 
-                            <Typography variant='subtitle1'>Environment information</Typography>
-                            <IconButton onClick={() => setMode('view')}>
-                                <Iconify icon="eva:arrow-back-outline" />
-                            </IconButton>
-                        </Stack>
-                        <Typography variant='subtitle2'>Here you will define the information about the environment</Typography>
-                        <Stack gap={1} paddingBottom={1}>
-                            <RHFTextField name="name" label="Name" />
-                            <RHFUploadSingleFile name="image" onDrop={handleDrop} />
-                            <Stack direction={{ xs: 'column', sm: 'row' }} marginTop={1} gap={1}>
-                                <RHFTextField name="cost" label="Booking cost" type="number" InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
-                                <RHFTextField name="capacity" label="Capacity of client" type="number" InputProps={{ startAdornment: <InputAdornment position="start">P</InputAdornment> }} />
-                            </Stack>
+                                    <Typography variant='subtitle1'>Environment information</Typography>
+                                    <IconButton onClick={() => setMode('view')}>
+                                        <Iconify icon="eva:arrow-back-outline" />
+                                    </IconButton>
+                                </Stack>
+                                <Typography sx={{ mb: 2 }} variant='subtitle2'>Here you will define the information about the environment</Typography>
+                                <Stack gap={1} paddingBottom={1}>
+                                    <RHFTextField name="name" label="Name" />
+                                    <RHFUploadSingleFile name="image" onDrop={handleDrop} />
+                                    <Stack direction={{ xs: 'column', sm: 'row' }} marginTop={1} gap={1}>
+                                        <RHFTextField name="cost" label="Booking cost" type="number" InputProps={{ startAdornment: <InputAdornment position="start">R$</InputAdornment> }} />
+                                        <RHFTextField name="capacity" label="Capacity of client" type="number" InputProps={{ startAdornment: <InputAdornment position="start">P</InputAdornment> }} />
+                                    </Stack>
 
-                        </Stack>
-                        <Stack gap={1}>
-                            <Typography variant='subtitle1'>Environment setting</Typography>
-                            <Typography variant='subtitle2'>Duration of servations</Typography>
-                            <RHFToggleGroup
-                                name="perRevervation"
-                                options={[
-                                    { value: '0', label: 'Per hour' },
-                                    { value: '1', label: 'Per Day' },
-                                ]}
-                            />
-                            <Typography variant='subtitle2'>Will it appear for everyone?</Typography>
-                            <RHFToggleGroup
-                                name="showAll"
-                                options={[
-                                    { value: '0', label: 'Yes' },
-                                    { value: '1', label: 'No' },
-                                    { value: '2', label: 'Admins only' },
-                                ]}
-                            />
-                            <Typography variant='subtitle2'>Environment status</Typography>
-                            <RHFToggleGroup
-                                name="status"
-                                options={[
-                                    { value: '1', label: 'Active' },
-                                    { value: '0', label: 'Inactive' },
-                                ]}
-                            />
-                            <Typography variant='subtitle2'>Status pattern</Typography>
-                            <RHFToggleGroup
-                                name="state"
-                                options={[
-                                    { value: '1st on hold', label: '1st on hold' },
-                                    { value: 'confirmed', label: 'Confirmed' },
-                                    { value: 'expired', label: 'Expired' },
-                                    { value: 'already charged', label: 'Already Charged' },
-                                    { value: 'prebooking', label: 'Prebooking' },
-                                ]}
-                            />
+                                </Stack>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardContent>
+                                <Stack gap={1}>
+                                    <Typography variant='subtitle1' sx={{mb:2}}>Environment setting</Typography>
+                                    <Stack direction='row' flexWrap={'wrap'} gap={2}>
+                                        <Stack>
+                                            <Typography variant='subtitle2'>Duration of servations</Typography>
+                                            <RHFToggleGroup
+                                                name="perRevervation"
+                                                options={[
+                                                    { value: '0', label: 'Per hour' },
+                                                    { value: '1', label: 'Per Day' },
+                                                ]}
+                                            />
+                                        </Stack>
+                                        <Stack>
+                                            <Typography variant='subtitle2'>Will it appear for everyone?</Typography>
+                                            <RHFToggleGroup
+                                                name="showAll"
+                                                options={[
+                                                    { value: '0', label: 'Yes' },
+                                                    { value: '1', label: 'No' },
+                                                    { value: '2', label: 'Admins only' },
+                                                ]}
+                                            />
+                                        </Stack>
+                                        <Stack>
+                                            <Typography variant='subtitle2'>Environment status</Typography>
+                                            <RHFToggleGroup
+                                                name="status"
+                                                options={[
+                                                    { value: '1', label: 'Active' },
+                                                    { value: '0', label: 'Inactive' },
+                                                ]}
+                                            />
+                                        </Stack>
+                                        <Stack>
+                                            <Typography variant='subtitle2'>Status pattern</Typography>
+                                            <RHFToggleGroup
+                                                name="state"
+                                                options={[
+                                                    // { value: '1st on hold', label: '1st on hold' },
+                                                    { value: 'confirmed', label: 'Confirmed' },
+                                                    // { value: 'expired', label: 'Expired' },
+                                                    { value: 'already charged', label: 'Already Charged' },
+                                                    { value: 'prebooking', label: 'Prebooking' },
+                                                ]}
+                                            />
+                                        </Stack>
+                                    </Stack>
 
-                        </Stack>
+
+
+                                </Stack>
+
+                            </CardContent>
+                        </Card>
 
                         <Box>
-                            <Button  sx={{ mr: 2 }} variant="outlined" onClick={() => {
+                            <Button sx={{ mr: 2 }} variant="outlined" onClick={() => {
                                 setSelectedEnvironment(null);
                                 reset(defaultValues);
                             }}>

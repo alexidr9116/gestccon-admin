@@ -390,7 +390,7 @@ export default function Resident() {
                                             </optgroup>
                                         </RHFSelect>
 
-                                        <Button onClick={onCategory} variant={'outlined'}>Manage</Button>
+                                        <Button onClick={onCategory} variant={'outlined'}>+</Button>
                                     </Stack>
 
                                     {/* <RHFSelect name="roleId" label="Category" sx={{ mb: 2 }}>
@@ -466,7 +466,7 @@ export default function Resident() {
                 </FormProvider >
             }
 
-            <CategoryDialog onClose={onCloseCategoryDialog} open={openCategoryDialog} />
+            <CategoryDialog onClose={onCloseCategoryDialog} open={openCategoryDialog} category='residentType'/>
             <EmailDialog onClose={() => { setOpenEmailDialog(false) }} open={openEmailDialog} user={selectedUser?.id} />
             <TelephoneDialog onClose={() => { setOpenTelephoneDialog(false) }} open={openTelephoneDialog} user={selectedUser?.id} />
             <AddressDialog onClose={() => { setOpenAddressDialog(false) }} open={openAddressDialog} user={selectedUser?.id} />

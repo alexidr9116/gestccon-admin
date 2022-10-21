@@ -23,6 +23,7 @@ import CategoryTableRow from "../list/CategoryTableRow";
 CategoryDialog.propTypes = {
     open: PropType.bool,
     onClose: PropType.func,
+    category: PropType.string
 }
 const TABLE_HEAD = [
     { id: 'no', label: 'No', align: 'left' },
@@ -31,9 +32,10 @@ const TABLE_HEAD = [
     { id: '' },
 ];
 
-export default function CategoryDialog({ open, onClose }) {
+export default function CategoryDialog({ open, onClose, category }) {
     const [loading, setLoading] = useState(false);
     const [categories, setCategories] = useState([]);
+
     const [selectedCategory, setSelectedCategory] = useState(null);
     const { enqueueSnackbar } = useSnackbar();
     const RegisterForm = Yup.object().shape({
@@ -43,6 +45,7 @@ export default function CategoryDialog({ open, onClose }) {
     });
 
     const defaultValues = useMemo(() => ({
+        category: selectedCategory?.category || category,
         name: selectedCategory?.name || '',
         type: selectedCategory?.type || 'Customize',
     }), [selectedCategory]);
@@ -58,21 +61,29 @@ export default function CategoryDialog({ open, onClose }) {
         rowsPerPage,
         //
         selected,
+
         //
         onSort,
     } = useTable();
+
     const {
         reset,
+        watch,
         handleSubmit,
         formState: { isSubmitting, isValid },
     } = methods;
+    const categoryType = watch('category');
 
     const onSubmit = async (data) => {
-        axios.post('/api/admin/user/set-category', { ...data, id: (selectedCategory?.id || 0) }).then(res => {
+        axios.post('/api/admin/condominium/set-category', { ...data, id: (selectedCategory?.id || 0) }).then(res => {
             if (res.status === 200) {
                 enqueueSnackbar(res?.data?.message);
                 setSelectedCategory(null)
                 load();
+            }
+            else {
+                enqueueSnackbar(res?.data?.message, { variant: 'error' });
+                setSelectedCategory(null)
             }
         }).catch(err => {
 
@@ -83,11 +94,22 @@ export default function CategoryDialog({ open, onClose }) {
 
     }
     const onDeleteRow = async (category) => {
-        console.log(category)
+        axios.delete(`/api/admin/condominium/delete-category/${category.id}`).then(res => {
+            if (res.status === 200 && res.data?.message) {
+                enqueueSnackbar(res.data?.message, { variant: 'success' })
+                setSelectedCategory(null)
+                load();
+            }
+            else {
+                enqueueSnackbar(res.data?.message, { variant: 'error' })
+            }
+        }).catch(err => {
+            enqueueSnackbar("Server error", { variant: 'error' })
+        })
     }
     const load = async () => {
         setLoading(true)
-        axios.get('/api/admin/user/get-category').then(res => {
+        axios.get(`/api/admin/condominium/get-categories/${!categoryType ? category : categoryType}`).then(res => {
             if (res.status === 200 && res.data.data) {
                 setCategories(res.data.data.categories);
             }
@@ -102,19 +124,32 @@ export default function CategoryDialog({ open, onClose }) {
 
     }, [selectedCategory, defaultValues, reset])
     useEffect(() => {
-        load();
-    }, [open]);
+        if (open)
+            load();
+    }, [open, categoryType]);
 
-    const onCloseHandle = ()=>{
-        onClose(categories);
+    const onCloseHandle = () => {
+        axios.get(`/api/admin/condominium/get-categories/${category}`).then(res => {
+            if (res.status === 200 && res.data.data) {
+                onClose(res.data.data.categories);
+            }
+        }).catch(err => {
+
+        }).finally(() => {
+            setLoading(false)
+        })
     }
     return (
         <Dialog open={open} onClose={onCloseHandle} fullWidth maxWidth="sm">
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Card>
-                    <CardHeader title={'Category of resident'} />
+                    <CardHeader title={'Category of condominiums'} />
                     <CardContent>
                         <Stack marginBottom={2} paddingX={1} justifyContent={'space-between'} spacing={1} gap={1}>
+                            <RHFSelect name={'category'} label="Category Type">
+                                <option value="medical">Medical Cert</option>
+                                <option value="residentType">Resident Type</option>
+                            </RHFSelect>
                             <RHFTextField name={'name'} label="Category Name" />
                             <RHFSelect name={'type'} label="Category Type">
                                 <option value='System'>System</option>
@@ -140,7 +175,7 @@ export default function CategoryDialog({ open, onClose }) {
                             {!loading &&
 
                                 <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                                    <Table size= "small">
+                                    <Table size="small">
                                         <TableHeadCustom
                                             order={order}
                                             orderBy={orderBy}

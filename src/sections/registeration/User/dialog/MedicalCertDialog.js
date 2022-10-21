@@ -1,4 +1,4 @@
-import { Box, Button, Card, CardContent, CardHeader, Dialog, Menu, Skeleton, Stack, Table, TableBody, TableContainer, TextField, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, CardHeader, Dialog, IconButton, Menu, Skeleton, Stack, Table, TableBody, TableContainer, TextField, Typography } from "@mui/material";
 import PropType from 'prop-types';
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -10,16 +10,17 @@ import { useForm, Controller } from 'react-hook-form';
 import { LoadingButton } from "@mui/lab";
 import { MobileDatePicker } from "@mui/x-date-pickers";
 import Scrollbar from '../../../../components/Scrollbar';
-import { RHFSwitch, RHFToggleGroup, FormProvider, RHFTextField, RHFUploadSingleFile, RHFSelect, RHFUploadAvatar, RHFUploadImage, RHFUploadDocFile } from '../../../../components/hook-form';
-import Iconify from '../../../../components/Iconify';
-import axios from '../../../../utils/axios';
-import { TableEmptyRows, TableHeadCustom, TableMoreMenu, TableNoData, TableSelectedActions } from '../../../../components/table';
-import { HOST_API } from '../../../../config';
-// routes
-import useTable, { getComparator, emptyRows } from '../../../../hooks/useTable';
+import { FormProvider, RHFSelect, RHFTextField, RHFUploadDocFile } from '../../../../components/hook-form';
 
-import BicycleTableRow from "../list/BicycleTableRow";
+import axios from '../../../../utils/axios';
+import { TableEmptyRows, TableHeadCustom, } from '../../../../components/table';
+
+// routes
+import useTable, { emptyRows } from '../../../../hooks/useTable';
+
 import MedicalCertRow from "../list/MedicalCertRow";
+import CategoryDialog from "./CategoryDialog";
+import Iconify from "../../../../components/Iconify";
 
 
 MedicalCertDialog.propTypes = {
@@ -40,17 +41,20 @@ export default function MedicalCertDialog({ open, onClose, user }) {
     const [data, setData] = useState([]);
     const [current, setCurrent] = useState(null);
     const { enqueueSnackbar } = useSnackbar();
-    const [categories,setCategories] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [openCategory, setOpenCategory] = useState(false);
+    const [mode, setMode] = useState('view');
     const RegisterForm = Yup.object().shape({
         endDate: Yup.string().required('Final Date field is required'),
         type: Yup.string().required('Type field is required'),
-
+        observation: Yup.string().required('Observation field is required'),
     });
 
     const defaultValues = useMemo(() => ({
         endDate: current?.name || new Date(),
-        type: current?.location || '',
+        type: current?.location || 'none',
         file: current?.file || '',
+        observation: current?.observation || '',
     }), [current]);
 
     const methods = useForm({
@@ -93,6 +97,7 @@ export default function MedicalCertDialog({ open, onClose, user }) {
             iData.append('type', data.type);
             iData.append('file', data.file);
             iData.append('user', user);
+            iData.append('observation', data.observation);
             iData.append('id', (current?.id || 0))
             axios.post('/api/admin/user/set-medical-cert-with-image', iData).then(res => {
                 if (res.status === 200) {
@@ -136,8 +141,8 @@ export default function MedicalCertDialog({ open, onClose, user }) {
     );
     const load = async () => {
         setLoading(true)
-        const res = await axios.post('/api/admin/condominium/get-categories',{category:'medical'});
-        if(res.status === 200 && res.data.data?.categories){
+        const res = await axios.get('/api/admin/condominium/get-categories/medical');
+        if (res.status === 200 && res.data.data?.categories) {
             setCategories(res.data.data?.categories);
         }
         axios.get(`/api/admin/user/get-medical-certs/${user}`).then(res => {
@@ -158,120 +163,154 @@ export default function MedicalCertDialog({ open, onClose, user }) {
         if (open)
             load();
     }, [open]);
-
+    const onCloseCategory = (categories) => {
+        setOpenCategory(false);
+        setCategories(categories);
+    }
     return (
-        <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-            <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-                <Card>
-                    <CardHeader title={' Optional Medical Certifications'} />
-                    <CardContent>
-                        <Stack marginBottom={2} paddingX={1} justifyContent={'space-between'} spacing={1} gap={1} flexDirection={{ xs: 'column', sm: 'row' }}>
-                            <Stack>
-                                <RHFUploadDocFile icon={'emojione-v1:document'} sx={{ width: 180, height: 140 }} name="file" onDrop={handleDrop}
-                                    helperText={
-                                        <Typography
-                                            variant="caption"
-                                            sx={{
-                                                my: 2,
-                                                mx: 'auto',
-                                                display: 'block',
-                                                textAlign: 'center',
-                                                color: 'text.secondary',
-                                            }}
-                                        >
-                                            Choose document.
-                                        </Typography>
-                                    } />
-                            </Stack>
-                            <Stack gap={2} sx={{ flexGrow: 1 }}>
-                                <Controller
-                                    name="endDate"
-                                    control={control}
-                                    render={({ field }) => (
-                                        <MobileDatePicker
-                                            {...field}
-                                            label="Final Date"
-                                            inputFormat="dd/MM/yyyy"
-                                            renderInput={(params) => <TextField {...params} fullWidth />}
-                                        />
-                                    )}
-                                />
-                                <RHFSelect name={'type'} label="Category" >
-                                    <optgroup label ="System">
-                                        {
-                                            categories.filter((ct)=>ct.type==='System').map((ct, index)=>(
-                                                <option key = {index} value = {ct.name}>{ct.name}</option>
-                                            ))
-                                        }
-                                    </optgroup>
-                                    <optgroup label ="Customize">
-                                        {
-                                            categories.filter((ct)=>ct.type==='Customize').map((ct, index)=>(
-                                                <option key = {index} value = {ct.name}>{ct.name}</option>
-                                            ))
-                                        }
-                                    </optgroup>
-                                </RHFSelect>
-                            </Stack>
-                        </Stack>
+        <>
+            <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+                <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+                    <Card>
 
-                        <Typography variant="h6" sx={{ mt: 4, mb: 2 }}>
-                            Registered Certs
-                        </Typography>
-                        <Scrollbar>
-                            {loading &&
-                                <>
-                                    {
-                                        [1, 2, 3].map((index) => (
-                                            <Skeleton animation="wave" height={40} key={index} />
-                                        ))
-                                    }
-
-                                </>
-
-                            }
-                            {!loading &&
-
-                                <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
-                                    <Table size="small">
-                                        <TableHeadCustom
-                                            order={order}
-                                            orderBy={orderBy}
-                                            headLabel={TABLE_HEAD}
-                                            rowCount={data?.length}
-                                            numSelected={selected.length}
-                                            onSort={onSort}
-                                        // onSelectAllRows={(checked) =>
-                                        //     onSelectAllRows(
-                                        //         checked,
-                                        //         roles.map((row) => row.id)
-                                        //     )
-                                        // }
-                                        />
-
-                                        <TableBody>
-                                            {(data.map((ct, index) => (
-                                                <MedicalCertRow
-                                                    index={index}
-                                                    key={index}
-                                                    row={ct}
-                                                    onEditRow={() => onEditRow(ct)}
-                                                    onDeleteRow={() => onDeleteRow(ct)}
+                        <CardContent>
+                            {mode === 'edit' && <>
+                                <Stack justifyContent={'space-between'} direction='row'>
+                                    <Typography>Optional Medical Certifications</Typography>
+                                    <IconButton onClick = {()=>{setMode('view')}}>
+                                        <Iconify icon="eva:arrow-back-outline" />
+                                    </IconButton>
+                                </Stack>
+                                <Stack marginBottom={2} paddingX={1} justifyContent={'space-between'} spacing={1} gap={1} flexDirection={{ xs: 'column', sm: 'row' }}>
+                                    <Stack>
+                                        <RHFUploadDocFile icon={'emojione-v1:document'} sx={{ width: 180, height: 140 }} name="file" onDrop={handleDrop}
+                                            helperText={
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        my: 2,
+                                                        mx: 'auto',
+                                                        display: 'block',
+                                                        textAlign: 'center',
+                                                        color: 'text.secondary',
+                                                    }}
+                                                >
+                                                    Choose document.
+                                                </Typography>
+                                            } />
+                                    </Stack>
+                                    <Stack gap={2} sx={{ flexGrow: 1 }}>
+                                        <Controller
+                                            name="endDate"
+                                            control={control}
+                                            render={({ field }) => (
+                                                <MobileDatePicker
+                                                    {...field}
+                                                    label="Final Date"
+                                                    inputFormat="dd/MM/yyyy"
+                                                    renderInput={(params) => <TextField {...params} fullWidth />}
                                                 />
-                                            )))}
-                                            <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, data.length)} />
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            }
-                        </Scrollbar>
-                        <Stack sx={{ mt: 2, justifyContent: 'end' }} direction="row" gap={2} >
-                            <Button onClick={onClose} variant="outlined" >Close</Button>
-                            <LoadingButton variant="contained" type="submit" >Save</LoadingButton>
-                        </Stack>
-                    </CardContent>
-                </Card>
-            </FormProvider>
-        </Dialog>
+                                            )}
+                                        />
+                                        <Stack direction={'row'} gap={1}>
+
+                                            <RHFSelect name={'type'} label="Category" >
+                                                <option disabled value='none'>Select Category</option>
+                                                <optgroup label="System">
+                                                    {
+                                                        categories.filter((ct) => ct.type === 'System').map((ct, index) => (
+                                                            <option key={index} value={ct.name}>{ct.name}</option>
+                                                        ))
+                                                    }
+                                                </optgroup>
+                                                <optgroup label="Customize">
+                                                    {
+                                                        categories.filter((ct) => ct.type === 'Customize').map((ct, index) => (
+                                                            <option key={index} value={ct.name}>{ct.name}</option>
+                                                        ))
+                                                    }
+                                                </optgroup>
+                                            </RHFSelect>
+                                            <Button variant="outlined" onClick={() => { setOpenCategory(true) }}>+</Button>
+                                        </Stack>
+                                    </Stack>
+
+                                </Stack>
+                                <Stack paddingX={1} >
+                                    <RHFTextField multiline minRows={3} name="observation" label="Observation" />
+                                </Stack>
+                            </>}
+                            {mode === 'view' && <>
+                                <Stack justifyContent={'space-between'} direction='row'>
+                                    <Typography variant="h6" sx={{  mb: 2 }}>
+                                        Registered Certs
+                                    </Typography>
+                                    <IconButton  sx={{  mb: 2 }} onClick={() => {
+                                        setMode('edit');
+                                        setCurrent(null);
+                                        reset();
+                                    }}><Iconify icon="eva:arrow-forward-fill" /></IconButton>
+
+                                </Stack>
+
+                                <Scrollbar>
+                                    {loading &&
+                                        <>
+                                            {
+                                                [1, 2, 3].map((index) => (
+                                                    <Skeleton animation="wave" height={40} key={index} />
+                                                ))
+                                            }
+
+                                        </>
+
+                                    }
+                                    {!loading &&
+
+                                        <TableContainer sx={{ width: '100%', minWidth: '400px', position: 'relative' }}>
+                                            <Table size="small">
+                                                <TableHeadCustom
+                                                    order={order}
+                                                    orderBy={orderBy}
+                                                    headLabel={TABLE_HEAD}
+                                                    rowCount={data?.length}
+                                                    numSelected={selected.length}
+                                                    onSort={onSort}
+                                                // onSelectAllRows={(checked) =>
+                                                //     onSelectAllRows(
+                                                //         checked,
+                                                //         roles.map((row) => row.id)
+                                                //     )
+                                                // }
+                                                />
+
+                                                <TableBody>
+                                                    {(data.map((ct, index) => (
+                                                        <MedicalCertRow
+                                                            index={index}
+                                                            key={index}
+                                                            row={ct}
+                                                            onEditRow={() => onEditRow(ct)}
+                                                            onDeleteRow={() => onDeleteRow(ct)}
+                                                        />
+                                                    )))}
+                                                    <TableEmptyRows emptyRows={emptyRows(page, rowsPerPage, data.length)} />
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    }
+                                </Scrollbar>
+
+                            </>}
+                            <Stack sx={{ mt: 2, justifyContent: 'end' }} direction="row" gap={2} >
+                                <Button onClick={onClose} variant="outlined" >Close</Button>
+                                <LoadingButton variant="contained" type="submit" disabled={mode==='view'}>Save</LoadingButton>
+                            </Stack>
+                        </CardContent>
+                    </Card>
+                </FormProvider>
+            </Dialog>
+            <CategoryDialog onClose={onCloseCategory} open={openCategory} category='medical' />
+        </>
     )
 }

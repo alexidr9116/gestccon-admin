@@ -23,3 +23,34 @@ export function fToNow(date) {
     addSuffix: true,
   });
 }
+
+export const WEEK_ARRAY = [
+  {
+    index:0,
+    name:'Sun'
+  },
+  {
+    index:1,
+    name:'Mon'
+  },
+  {
+    index:2,
+    name:'Tue'
+  },
+  {
+    index:3,
+    name:'Wed'
+  },
+  {
+    index:4,
+    name:'Tur'
+  },
+  {
+    index:5,
+    name:'Fri'
+  },
+  {
+    index:6,
+    name:'Sat'
+  },
+]

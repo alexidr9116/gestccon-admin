@@ -37,11 +37,10 @@ export default function CategoryTableRow({ index, row, onEditRow, onDeleteRow })
             <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
                 {index + 1}
             </TableCell>
-            <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
+            <TableCell  sx={{ textTransform: 'capitalize' }}>
 
-                <Typography variant="subtitle2" noWrap>
-                    {name}
-                </Typography>
+                {name}
+
             </TableCell>
 
             <TableCell align="left" sx={{ textTransform: 'capitalize' }}>
